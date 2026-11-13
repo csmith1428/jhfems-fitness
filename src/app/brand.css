@@ -1,0 +1,31 @@
+
+/*
+  JHFEMS FITNESS & WELLNESS
+  Central Brand Design System
+
+  Change these values to update components
+  that use our shared brand colors.
+*/
+
+:root {
+  /* PRIMARY BRAND */
+  --brand-red: #D83036;
+  --brand-red-hover: #B9252B;
+  --brand-red-soft: #FF8C91;
+
+  /* DARK SURFACES */
+  --brand-charcoal: #292E31;
+  --brand-slate: #34424B;
+  --brand-slate-hover: #293943;
+  --brand-panel: #303639;
+
+  /* LIGHT SURFACES */
+  --brand-canvas: #F8F9F7;
+  --brand-ivory: #F6F7EB;
+  --brand-white: #FFFFFF;
+
+  /* TEXT AND BORDERS */
+  --brand-ink: #293035;
+  --brand-muted: #667A85;
+  --brand-border: #DEE4E6;
+}
