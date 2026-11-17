@@ -5,10 +5,10 @@
   To change when the program starts, edit this one line.
   Use the format YYYY-MM-DD.
 
-  NOTE: This date is a placeholder until the real pilot start date
-  is confirmed.
+  The pilot starts Monday, November 30, 2026. Keep this date a
+  Monday so every program week runs Monday through Sunday.
 */
-export const PROGRAM_START_DATE = "2026-11-09";
+export const PROGRAM_START_DATE = "2026-11-30";
 
 export const TOTAL_WEEKS = 12;
 
