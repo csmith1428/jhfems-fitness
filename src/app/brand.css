@@ -25,7 +25,9 @@
   --brand-white: #FFFFFF;
 
   /* TEXT AND BORDERS */
-  --brand-ink: #293035;
-  --brand-muted: #667A85;
+  --brand-night: #101315;
+  --brand-night-card: #1D2226;
+  --brand-ink: #14181B;
+  --brand-muted: #5B6670;
   --brand-border: #DEE4E6;
 }
