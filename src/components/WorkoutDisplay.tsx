@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import GuidedWorkout from "@/components/GuidedWorkout";
 import { workoutLibrary } from "@/data/workouts";
 import {
   useStoredString,
@@ -20,22 +21,33 @@ const levels: Level[] = [
 function SectionHeading({
   number,
   title,
+  count,
 }: {
   number: string;
   title: string;
+  count?: string;
 }) {
   return (
-    <div className="mb-5 flex items-center gap-3">
-      <span className="text-xs font-bold tracking-wider text-[#D83036]">
-        {number}
-      </span>
-
-      <h3 className="text-xl font-bold text-[#292E31]">
+    <div className="mb-3 flex items-baseline justify-between gap-3">
+      <h3 className="font-display text-2xl font-extrabold uppercase text-[var(--brand-ink)]">
+        <span className="mr-2 text-[var(--brand-red)]">{number}</span>
         {title}
       </h3>
+
+      {count && (
+        <span className="font-label text-[11px] uppercase tracking-widest text-[var(--brand-muted)]">
+          {count}
+        </span>
+      )}
     </div>
   );
 }
+
+const levelHelp: Record<Level, string> = {
+  beginner: "New to the gym. Learn the moves at a steady effort.",
+  standard: "Comfortable lifting. Follow the plan as written.",
+  advanced: "Strong and gym-experienced. Push it with clean form.",
+};
 
 export default function WorkoutDisplay({
   workout,
@@ -44,6 +56,7 @@ export default function WorkoutDisplay({
 }) {
   const [level, setLevel] = useState<Level>("standard");
   const [writeError, setWriteError] = useState(false);
+  const [guided, setGuided] = useState(false);
 
   const exercises = workout.scaling
     ? workout.scaling[level]
@@ -100,11 +113,6 @@ export default function WorkoutDisplay({
   const completedCount = currentChecked.length;
   const totalCount = mainItems.length;
 
-  const progress =
-    totalCount > 0
-      ? Math.round((completedCount / totalCount) * 100)
-      : 0;
-
   function toggleExercise(index: number) {
     const next = currentChecked.includes(index)
       ? currentChecked.filter((item) => item !== index)
@@ -127,23 +135,15 @@ export default function WorkoutDisplay({
     }
   }
 
+  const canGuide = workout.format === "strength";
+
   return (
     <div className="space-y-4">
 
       {/* TRAINING LEVEL */}
       {workout.scaling && (
-        <section className="rounded-2xl bg-[#303639] p-5 text-white sm:p-6">
-          <div className="mb-4">
-            <h3 className="text-lg font-bold">
-              Choose Your Level
-            </h3>
-
-            <p className="mt-1 text-sm text-[#C3D0D6]">
-              Select the variation that fits your training today.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
+        <section aria-label="Choose your level">
+          <div className="flex gap-1 rounded-2xl bg-[#E9ECE8] p-1">
             {levels.map((option) => {
               const selected = level === option;
 
@@ -153,10 +153,10 @@ export default function WorkoutDisplay({
                   type="button"
                   aria-pressed={selected}
                   onClick={() => chooseLevel(option)}
-                  className={`min-h-12 rounded-lg border px-2 py-3 text-xs font-semibold capitalize transition-all sm:text-sm ${
+                  className={`min-h-11 flex-1 rounded-xl px-2 text-sm capitalize transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-red)] ${
                     selected
-                      ? "border-[#D83036] bg-[#D83036] text-white"
-                      : "border-[#637179] bg-[#3D484D] text-[#D2DEE2] hover:border-[#A6B6BE]"
+                      ? "bg-[var(--brand-night)] font-bold text-white"
+                      : "font-semibold text-[var(--brand-slate)] hover:bg-white/60"
                   }`}
                 >
                   {option}
@@ -164,22 +164,51 @@ export default function WorkoutDisplay({
               );
             })}
           </div>
+
+          <p className="mt-2 px-1 text-sm text-[var(--brand-muted)]">
+            {levelHelp[level]}
+          </p>
         </section>
       )}
 
-      {/* WARM-UP */}
-      <section className="rounded-2xl border border-[#DEE4E6] bg-white p-5 sm:p-6">
-        <SectionHeading number="01" title="Warm-up" />
+      {/* START GUIDED MODE (strength) */}
+      {canGuide && (
+        <button
+          type="button"
+          onClick={() => setGuided(true)}
+          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-night)] px-5 text-base font-bold text-white shadow-[0_8px_18px_rgba(20,24,27,0.25)] transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--brand-red)]"
+        >
+          Start guided mode
+          <span aria-hidden="true">→</span>
+        </button>
+      )}
 
-        <ul className="space-y-3">
+      {guided && (
+        <GuidedWorkout
+          workout={workout}
+          levelLabel={level[0].toUpperCase() + level.slice(1)}
+          mainLines={exercises}
+          onClose={() => setGuided(false)}
+        />
+      )}
+
+      {/* WARM-UP */}
+      <section className="rounded-3xl bg-white p-5 shadow-[0_2px_10px_rgba(20,24,27,0.07)] sm:p-6">
+        <SectionHeading
+          number="01"
+          title="Warm-up"
+          count={`${workout.warmup.length} items`}
+        />
+
+        <ul className="divide-y divide-[#E3E6E2]">
           {workout.warmup.map((item, index) => (
             <li
               key={index}
-              className="flex items-start gap-3 text-sm leading-relaxed text-[#45565E]"
+              className="flex items-start gap-3 py-3 text-[15px] leading-relaxed text-[#2F3A41]"
             >
               <span
                 aria-hidden="true"
-                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8B9BA3]"
+                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--brand-red)]"
               />
               <span>{item}</span>
             </li>
@@ -188,44 +217,42 @@ export default function WorkoutDisplay({
       </section>
 
       {/* MAIN WORK */}
-      <section className="rounded-2xl border border-[#DEE4E6] bg-[#F6F7EB] p-5 sm:p-6">
-        <SectionHeading number="02" title="Main Work" />
+      <section className="rounded-3xl bg-white p-5 shadow-[0_2px_10px_rgba(20,24,27,0.07)] sm:p-6">
+        <SectionHeading
+          number="02"
+          title="Main work"
+          count={`${completedCount} of ${totalCount} checked`}
+        />
 
         {/* PROGRESS */}
-        <div className="mb-5">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold text-[#45565E]">
-              Exercise checklist
-            </p>
-
-            <span className="text-xs font-semibold text-[#657780]">
-              {completedCount} of {totalCount} checked
-            </span>
-          </div>
-
-          <div
-            role="progressbar"
-            aria-label="Exercise checklist progress"
-            aria-valuemin={0}
-            aria-valuemax={totalCount || 1}
-            aria-valuenow={completedCount}
-            className="h-2 overflow-hidden rounded-full bg-[#DCE2E2]"
-          >
+        <div
+          role="progressbar"
+          aria-label="Exercise checklist progress"
+          aria-valuemin={0}
+          aria-valuemax={totalCount || 1}
+          aria-valuenow={completedCount}
+          className="mb-4 flex gap-1"
+        >
+          {mainItems.map((_, index) => (
             <div
-              className="h-full rounded-full bg-[#D83036] transition-all duration-300"
-              style={{ width: `${progress}%` }}
+              key={index}
+              className={`h-2 flex-1 rounded transition-colors ${
+                index < completedCount
+                  ? "bg-[var(--brand-red)]"
+                  : "bg-[#D5DAD6]"
+              }`}
             />
-          </div>
+          ))}
         </div>
 
         {/* GROUPED CONDITIONING / CIRCUIT TITLE */}
         {groupTitle && (
-          <div className="mb-3 rounded-xl border border-[#DCE2E3] bg-white p-4">
-            <p className="text-xs font-bold tracking-wider text-[#D83036]">
-              SESSION FORMAT
+          <div className="mb-3 rounded-2xl bg-[var(--brand-night)] p-4 text-white">
+            <p className="font-label text-[11px] uppercase tracking-widest text-[#AEB6BC]">
+              Session format
             </p>
 
-            <p className="mt-2 text-sm font-semibold leading-relaxed text-[#292E31]">
+            <p className="mt-2 text-sm font-semibold leading-relaxed">
               {groupTitle}
             </p>
           </div>
@@ -244,19 +271,19 @@ export default function WorkoutDisplay({
                 aria-pressed={isChecked}
                 aria-label={`${isChecked ? "Uncheck" : "Check off"} exercise ${index + 1}: ${exercise}`}
                 onClick={() => toggleExercise(index)}
-                className={`flex min-h-16 w-full items-center gap-3 rounded-xl border p-4 text-left transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D83036] ${
+                className={`flex min-h-16 w-full items-center gap-3 rounded-2xl border p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-red)] ${
                   isChecked
-                    ? "border-[#E3C4C6] bg-[#FFF8F8]"
-                    : "border-[#DEE4E6] bg-white hover:border-[#B2C0C6]"
+                    ? "border-[#EBC5C7] bg-[#FFF6F6]"
+                    : "border-[#E3E6E2] bg-[#F8F9F7] hover:border-[#B7BFC4]"
                 }`}
               >
-                {/* CHECK ICON */}
+                {/* CHECK BOX */}
                 <span
                   aria-hidden="true"
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition-colors ${
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 text-sm font-bold transition-colors ${
                     isChecked
-                      ? "border-[#D83036] bg-[#D83036] text-white"
-                      : "border-[#A6B3BA] bg-white text-transparent"
+                      ? "border-[var(--brand-red)] bg-[var(--brand-red)] text-white"
+                      : "border-[#B7BFC4] bg-white text-transparent"
                   }`}
                 >
                   ✓
@@ -265,16 +292,16 @@ export default function WorkoutDisplay({
                 {/* EXERCISE CONTENT */}
                 <div className="min-w-0 flex-1">
                   {!grouped && (
-                    <span className="mb-1 block text-[10px] font-bold tracking-wider text-[#8A989F]">
-                      EXERCISE {String(index + 1).padStart(2, "0")}
+                    <span className="mb-1 block font-label text-[10px] uppercase tracking-widest text-[#6B7680]">
+                      Exercise {String(index + 1).padStart(2, "0")}
                     </span>
                   )}
 
                   <p
-                    className={`text-sm font-semibold leading-relaxed ${
+                    className={`text-[15px] font-semibold leading-relaxed ${
                       isChecked
-                        ? "text-[#657780]"
-                        : "text-[#292E31]"
+                        ? "text-[var(--brand-muted)]"
+                        : "text-[var(--brand-ink)]"
                     }`}
                   >
                     {exercise}
@@ -287,11 +314,11 @@ export default function WorkoutDisplay({
 
         {/* RESET */}
         {completedCount > 0 && (
-          <div className="mt-5 flex justify-end">
+          <div className="mt-4 flex justify-end">
             <button
               type="button"
               onClick={resetChecklist}
-              className="text-xs font-semibold text-[#667780] underline underline-offset-4 hover:text-[#D83036]"
+              className="min-h-11 text-xs font-semibold text-[var(--brand-muted)] underline underline-offset-4 hover:text-[var(--brand-red)]"
             >
               Reset exercise checks
             </button>
@@ -306,18 +333,22 @@ export default function WorkoutDisplay({
       </section>
 
       {/* COOLDOWN */}
-      <section className="rounded-2xl border border-[#DEE4E6] bg-white p-5 sm:p-6">
-        <SectionHeading number="03" title="Cooldown" />
+      <section className="rounded-3xl bg-white p-5 shadow-[0_2px_10px_rgba(20,24,27,0.07)] sm:p-6">
+        <SectionHeading
+          number="03"
+          title="Cool-down"
+          count={`${workout.cooldown.length} items`}
+        />
 
-        <ul className="space-y-3">
+        <ul className="divide-y divide-[#E3E6E2]">
           {workout.cooldown.map((item, index) => (
             <li
               key={index}
-              className="flex items-start gap-3 text-sm leading-relaxed text-[#45565E]"
+              className="flex items-start gap-3 py-3 text-[15px] leading-relaxed text-[#2F3A41]"
             >
               <span
                 aria-hidden="true"
-                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#8B9BA3]"
+                className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--brand-red)]"
               />
               <span>{item}</span>
             </li>
@@ -326,7 +357,7 @@ export default function WorkoutDisplay({
       </section>
 
       {/* GUIDANCE */}
-      <p className="px-1 text-xs leading-relaxed text-[#71818A]">
+      <p className="px-1 text-xs leading-relaxed text-[var(--brand-muted)]">
         Exercise checkmarks help you track your session.
         They do not log workout completion. Use
         &quot;Mark workout complete&quot; below when you finish.
