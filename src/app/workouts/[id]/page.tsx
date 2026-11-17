@@ -20,7 +20,7 @@ async function WorkoutDetails({
 
   if (!workout) {
     return (
-      <main className="min-h-screen bg-[#F8F9F7] px-6 py-12 text-[#293035]">
+      <main className="min-h-screen bg-[var(--brand-canvas)] px-6 py-12 text-[var(--brand-ink)]">
         <div className="mx-auto max-w-4xl">
           <h1 className="text-3xl font-bold">
             Workout not found
@@ -49,165 +49,70 @@ async function WorkoutDetails({
       : workout.category;
 
   return (
-    <main className="min-h-screen bg-[#F8F9F7] text-[#293035]">
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
+    <main className="min-h-screen bg-[var(--brand-canvas)] pb-28 text-[var(--brand-ink)] md:pb-10">
+      <div className="mx-auto max-w-2xl px-5 pt-6 sm:px-8 sm:pt-9">
 
-        {/* HEADER */}
-        <header className="mb-8 flex flex-col gap-6 border-b border-[#D9DEDF] pb-7 md:flex-row md:items-center md:justify-between">
-
-          {/* BRAND */}
+        {/* BACK */}
+        <div className="mb-5 flex items-center gap-3">
           <Link
-            href="/"
-            className="flex items-center gap-4 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E94F37]"
+            href="/workouts"
+            aria-label="Back to workouts"
+            className="flex h-11 w-11 items-center justify-center rounded-xl bg-white shadow-[0_2px_8px_rgba(20,24,27,0.10)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-red)]"
           >
-            <div
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
               aria-hidden="true"
-              className="flex h-12 w-12 shrink-0 items-center justify-center gap-1 rounded-lg bg-[#293035]"
             >
-              {[0, 1, 2].map((line) => (
-                <span
-                  key={line}
-                  className="h-6 w-1.5 -skew-x-[22deg] bg-[#E94F37]"
-                />
-              ))}
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold tracking-wider text-[#526D7B]">
-                JACKSON HOLE FIRE/EMS
-              </p>
-
-              <p className="mt-1 text-xl font-extrabold tracking-tight sm:text-2xl">
-                FITNESS <span className="text-[#E94F37]">&</span> WELLNESS
-              </p>
-            </div>
+              <path d="M15 5l-7 7 7 7" />
+            </svg>
           </Link>
 
-          {/* NAVIGATION */}
-          <nav
-            aria-label="Main navigation"
-            className="flex flex-wrap gap-3"
-          >
-            <Link
-              href="/program"
-              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#CBD4D7] bg-white px-4 py-2 text-sm font-semibold transition-colors hover:border-[#34424B] hover:bg-[#EEF2F3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E94F37]"
-            >
-              12-Week Program
-            </Link>
-
-            <Link
-              href="/progress"
-              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#CBD4D7] bg-white px-4 py-2 text-sm font-semibold transition-colors hover:border-[#34424B] hover:bg-[#EEF2F3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E94F37]"
-            >
-              My Progress
-            </Link>
-          </nav>
-        </header>
-
-        {/* BACK NAVIGATION */}
-        <div className="mb-6">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-sm text-sm font-medium text-[#526D7B] transition-colors hover:text-[#C53D2A] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E94F37]"
-          >
-            <span aria-hidden="true">←</span>
-            Back to workouts
-          </Link>
+          <p className="font-label text-[11px] uppercase tracking-widest text-[var(--brand-muted)]">
+            Week {weekLabel} of 12
+          </p>
         </div>
 
-        {/* WORKOUT HERO */}
-        <section className="relative mb-10 overflow-hidden rounded-2xl bg-[#292E31] text-[#F6F7EB]">
+        {/* WORKOUT TITLE */}
+        <section className="mb-5">
+          <h1 className="font-display text-5xl font-extrabold uppercase leading-[0.95]">
+            {workout.title}
+          </h1>
 
-          {/* ACCENT */}
-          <div
-            aria-hidden="true"
-            className="absolute right-0 top-0 h-full w-1 bg-[#E94F37]"
-          />
+          <p className="mt-2 font-label text-[11px] uppercase tracking-widest text-[var(--brand-red)]">
+            {focusLabel}
+          </p>
 
-          <div className="p-7 sm:p-10">
-
-            {/* WEEK */}
-            <p className="mb-5 text-xs font-semibold tracking-wider text-[#A8C0CD]">
-              TRAINING CYCLE / WEEK {weekLabel} OF 12
-            </p>
-
-            {/* WORKOUT TITLE */}
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
-              {workout.title}
-            </h1>
-
-            {/* TRAINING FOCUS */}
-            <p className="mt-4 text-xs font-bold uppercase tracking-[0.12em] text-[#FF7863]">
-              {focusLabel}
-            </p>
-
-            {/* SESSION METADATA */}
-            <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-white/15 pt-6">
-
-              <div>
-                <p className="text-xs text-[#A8C0CD]">
-                  Estimated duration
-                </p>
-
-                <p className="mt-1 text-base font-semibold">
-                  {workout.duration}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs text-[#A8C0CD]">
-                  Program
-                </p>
-
-                <p className="mt-1 text-base font-semibold">
-                  12-Week Training Cycle
-                </p>
-              </div>
-
-            </div>
-          </div>
+          <p className="mt-1 font-label text-xs text-[var(--brand-muted)]">
+            {workout.duration}
+          </p>
         </section>
 
         {/* WORKOUT CONTENT */}
-        <div className="mx-auto max-w-3xl">
+        <section aria-label="Workout prescription">
+          <WorkoutDisplay workout={workout} />
+        </section>
 
-          {/* WORKOUT DISPLAY */}
-          <section aria-label="Workout prescription">
+        {/* WORKOUT TRACKING */}
+        <section
+          aria-label="Workout completion and history"
+          className="mt-6"
+        >
+          <WorkoutCompletion
+            key={workout.id}
+            workoutId={workout.id}
+          />
+        </section>
 
-            <div className="mb-6">
-              <p className="mb-2 text-xs font-semibold tracking-wider text-[#526D7B]">
-                SESSION DETAILS
-              </p>
-
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                Today&apos;s Training
-              </h2>
-            </div>
-
-            <WorkoutDisplay workout={workout} />
-
-          </section>
-
-          {/* WORKOUT TRACKING */}
-          <section
-            aria-label="Workout completion and history"
-            className="mt-8"
-          >
-            <WorkoutCompletion
-              key={workout.id}
-              workoutId={workout.id}
-            />
-          </section>
-
-        </div>
-
-        {/* FOOTER */}
-        <footer className="mt-14 border-t border-[#D9DEDF] pt-6">
-          <p className="text-xs text-[#596A74]">
-            Jackson Hole Fire/EMS · Fitness & Wellness
-          </p>
+        <footer className="mt-10 border-t border-[#E3E6E2] pt-5 font-label text-[11px] text-[var(--brand-muted)]">
+          Jackson Hole Fire/EMS · Fitness & Wellness
         </footer>
-
       </div>
     </main>
   );
