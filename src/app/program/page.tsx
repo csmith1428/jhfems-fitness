@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useState } from "react";
 import AppHeader from "@/components/AppHeader";
 import { workoutLibrary } from "@/data/workouts";
+import { getCurrentWeek, TOTAL_WEEKS } from "@/lib/programWeek";
 
-const CURRENT_WEEK = 2;
-const TOTAL_WEEKS = 12;
+const CURRENT_WEEK = getCurrentWeek();
 
 const weeks = Array.from(
   { length: TOTAL_WEEKS },

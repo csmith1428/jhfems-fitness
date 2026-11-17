@@ -5,8 +5,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import AppHeader from "@/components/AppHeader";
 import { workoutLibrary } from "@/data/workouts";
+import { getCurrentWeek } from "@/lib/programWeek";
 
-const CURRENT_WEEK = 2;
+const CURRENT_WEEK = getCurrentWeek();
 const STORAGE_KEY = "jhfems-workout-history";
 
 const workoutOrder: Record<string, number> = {
