@@ -5,13 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import AppHeader from "@/components/AppHeader";
 import { workoutLibrary } from "@/data/workouts";
-import {
-  getCurrentWeek,
-  TOTAL_WEEKS,
-  weekPhase,
-} from "@/lib/programWeek";
-
-const CURRENT_WEEK = getCurrentWeek();
+import { TOTAL_WEEKS, weekPhase } from "@/lib/programWeek";
+import { useCurrentWeek } from "@/lib/useCurrentWeek";
 
 const workoutOrder: Record<string, number> = {
   "Strength A": 0,
@@ -19,14 +14,6 @@ const workoutOrder: Record<string, number> = {
   Conditioning: 2,
   "Functional Fitness": 3,
 };
-
-const weeklyWorkouts = workoutLibrary
-  .filter((workout) => workout.week === CURRENT_WEEK)
-  .sort(
-    (a, b) =>
-      (workoutOrder[a.title] ?? 99) -
-      (workoutOrder[b.title] ?? 99)
-  );
 
 function hasWorkoutId(value: unknown): value is {
   workoutId: string;
@@ -46,6 +33,18 @@ function focusLabel(category: string) {
 }
 
 export default function HomePage() {
+  const currentWeek = useCurrentWeek();
+  const ready = currentWeek !== null;
+  const CURRENT_WEEK = currentWeek ?? 1;
+
+  const weeklyWorkouts = workoutLibrary
+    .filter((workout) => workout.week === CURRENT_WEEK)
+    .sort(
+      (a, b) =>
+        (workoutOrder[a.title] ?? 99) -
+        (workoutOrder[b.title] ?? 99)
+    );
+
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [historyStatus, setHistoryStatus] = useState<
     "loading" | "ready" | "error"
@@ -106,7 +105,11 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-[var(--brand-canvas)] pb-28 text-[var(--brand-ink)] md:pb-10">
-      <div className="mx-auto max-w-2xl px-5 pt-6 sm:px-8 sm:pt-9">
+      <div
+        className={`mx-auto max-w-2xl px-5 pt-6 sm:px-8 sm:pt-9 ${
+          ready ? "" : "invisible"
+        }`}
+      >
         <AppHeader active="home" />
 
         {/* WEEK HERO */}

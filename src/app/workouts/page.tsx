@@ -5,9 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import AppHeader from "@/components/AppHeader";
 import { workoutLibrary } from "@/data/workouts";
-import { getCurrentWeek } from "@/lib/programWeek";
+import { useCurrentWeek } from "@/lib/useCurrentWeek";
 
-const CURRENT_WEEK = getCurrentWeek();
 const STORAGE_KEY = "jhfems-workout-history";
 
 const workoutOrder: Record<string, number> = {
@@ -17,14 +16,6 @@ const workoutOrder: Record<string, number> = {
   "Functional Fitness": 3,
 };
 
-const workouts = workoutLibrary
-  .filter((workout) => workout.week === CURRENT_WEEK)
-  .sort(
-    (a, b) =>
-      (workoutOrder[a.title] ?? 99) -
-      (workoutOrder[b.title] ?? 99)
-  );
-
 function focusLabel(category: string) {
   return category.toUpperCase() === "ENGINE"
     ? "CARDIO + ENDURANCE"
@@ -32,6 +23,18 @@ function focusLabel(category: string) {
 }
 
 export default function WorkoutsPage() {
+  const currentWeek = useCurrentWeek();
+  const ready = currentWeek !== null;
+  const CURRENT_WEEK = currentWeek ?? 1;
+
+  const workouts = workoutLibrary
+    .filter((workout) => workout.week === CURRENT_WEEK)
+    .sort(
+      (a, b) =>
+        (workoutOrder[a.title] ?? 99) -
+        (workoutOrder[b.title] ?? 99)
+    );
+
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [historyError, setHistoryError] = useState(false);
 
@@ -78,7 +81,11 @@ export default function WorkoutsPage() {
 
   return (
     <main className="min-h-screen bg-[var(--brand-canvas)] pb-28 text-[var(--brand-ink)] md:pb-10">
-      <div className="mx-auto max-w-6xl px-5 pt-6 sm:px-8 sm:pt-9">
+      <div
+        className={`mx-auto max-w-6xl px-5 pt-6 sm:px-8 sm:pt-9 ${
+          ready ? "" : "invisible"
+        }`}
+      >
         <AppHeader active="workouts" />
 
         <section className="mb-6">
