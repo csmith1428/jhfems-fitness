@@ -135,8 +135,6 @@ export default function WorkoutDisplay({
     }
   }
 
-  const canGuide = workout.format === "strength";
-
   return (
     <div className="space-y-4">
 
@@ -171,17 +169,15 @@ export default function WorkoutDisplay({
         </section>
       )}
 
-      {/* START GUIDED MODE (strength) */}
-      {canGuide && (
-        <button
-          type="button"
-          onClick={() => setGuided(true)}
-          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-night)] px-5 text-base font-bold text-white shadow-[0_8px_18px_rgba(20,24,27,0.25)] transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--brand-red)]"
-        >
-          Start guided mode
-          <span aria-hidden="true">→</span>
-        </button>
-      )}
+      {/* START GUIDED MODE */}
+      <button
+        type="button"
+        onClick={() => setGuided(true)}
+        className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-night)] px-5 text-base font-bold text-white shadow-[0_8px_18px_rgba(20,24,27,0.25)] transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--brand-red)]"
+      >
+        Start guided mode
+        <span aria-hidden="true">→</span>
+      </button>
 
       {guided && (
         <GuidedWorkout
