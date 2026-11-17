@@ -144,7 +144,7 @@ export default function HomePage() {
           </h2>
 
           <p className="mt-2 text-sm text-[#C8D4D9]">
-            Your progress through this week's four sessions.
+            Your progress through this week&apos;s four sessions.
           </p>
 
           <div
@@ -229,7 +229,7 @@ export default function HomePage() {
             role="alert"
             className="mt-4 text-sm text-[#B83F2E]"
           >
-            Your saved workout history couldn't be loaded.
+            Your saved workout history couldn&apos;t be loaded.
             No records have been changed.
           </p>
         )}

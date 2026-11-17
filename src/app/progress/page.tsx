@@ -2,8 +2,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { workoutLibrary } from "@/data/workouts";
+import { useStoredString } from "@/lib/useStoredString";
 
 type WorkoutSession = {
   id: string;
@@ -44,6 +44,19 @@ function isWorkoutSession(value: unknown): value is WorkoutSession {
   );
 }
 
+// Returns null when the stored value is missing the expected shape.
+function parseHistory(saved: string | null): WorkoutSession[] | null {
+  try {
+    const parsed: unknown = saved ? JSON.parse(saved) : [];
+
+    return Array.isArray(parsed) && parsed.every(isWorkoutSession)
+      ? parsed
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 function formatDate(dateString: string) {
   const date = new Date(dateString);
 
@@ -59,30 +72,12 @@ function formatDate(dateString: string) {
 }
 
 export default function ProgressPage() {
-  const [sessions, setSessions] = useState<WorkoutSession[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  const [loadError, setLoadError] = useState(false);
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      const history: unknown = saved ? JSON.parse(saved) : [];
-
-      if (
-        !Array.isArray(history) ||
-        !history.every(isWorkoutSession)
-      ) {
-        throw new Error("Invalid workout history format");
-      }
-
-      setSessions(history);
-    } catch (error) {
-      console.error("Unable to load workout history:", error);
-      setLoadError(true);
-    }
-
-    setLoaded(true);
-  }, []);
+  const stored = useStoredString(STORAGE_KEY);
+  const loaded = stored.status !== "loading";
+  const history =
+    stored.status === "ready" ? parseHistory(stored.value) : null;
+  const loadError = loaded && history === null;
+  const sessions = history ?? [];
 
   const sortedSessions = [...sessions].sort(
     (a, b) =>
