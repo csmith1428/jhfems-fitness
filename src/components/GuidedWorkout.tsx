@@ -7,33 +7,25 @@ import { splitWorkoutLines } from "@/lib/workoutText";
 import { useWorkoutLog } from "@/lib/workoutHistory";
 import type { Workout } from "@/data/workouts";
 
-type Step = {
-  section: "Warm-up" | "Main work" | "Cool-down";
-  name: string;
-  detail: string;
-};
+type Section = "Warm-up" | "Main work" | "Cool-down";
 
-function toSteps(
-  section: Step["section"],
-  lines: string[]
-): Step[] {
-  return lines.map((line) => {
-    const at = line.indexOf(" — ");
+// A "list" step shows every item at once (warm-up, cool-down).
+// A "move" step shows one move on its own (main work).
+type Step =
+  | { kind: "list"; section: Section; items: string[] }
+  | {
+      kind: "move";
+      section: Section;
+      name: string;
+      detail: string;
+    };
 
-    return at === -1
-      ? { section, name: line, detail: "" }
-      : {
-          section,
-          name: line.slice(0, at).trim(),
-          detail: line.slice(at + 3).trim(),
-        };
-  });
-}
+const sections: Section[] = ["Warm-up", "Main work", "Cool-down"];
 
 /*
-  Gym mode: one move at a time, full screen, dark.
-  Used for strength workouts. Warm-up, main work and
-  cool-down all appear as steps, in order.
+  Gym mode: full screen, dark. Used for strength workouts.
+  Warm-up and cool-down are each ONE screen (a checklist).
+  Main work shows one move at a time.
 */
 export default function GuidedWorkout({
   workout,
@@ -49,28 +41,39 @@ export default function GuidedWorkout({
   const log = useWorkoutLog(workout.id);
   const [index, setIndex] = useState(0);
   const [finished, setFinished] = useState(false);
+  // Warm-up / cool-down items ticked this session (just for show).
+  const [ticked, setTicked] = useState<string[]>([]);
 
   const { moves: mainMoves, notes } = splitWorkoutLines(mainLines);
 
   const steps: Step[] = [
-    ...toSteps("Warm-up", workout.warmup),
-    ...mainMoves.map((move) => ({
-      section: "Main work" as const,
-      name: move.name,
-      detail: move.detail,
-    })),
-    ...toSteps("Cool-down", workout.cooldown),
+    { kind: "list", section: "Warm-up", items: workout.warmup },
+    ...mainMoves.map(
+      (move): Step => ({
+        kind: "move",
+        section: "Main work",
+        name: move.name,
+        detail: move.detail,
+      })
+    ),
+    { kind: "list", section: "Cool-down", items: workout.cooldown },
   ];
 
   const step = steps[index];
   const isLast = index === steps.length - 1;
   const next = steps[index + 1];
 
-  const sections: Step["section"][] = [
-    "Warm-up",
-    "Main work",
-    "Cool-down",
-  ];
+  function stepName(item: Step) {
+    return item.kind === "list" ? item.section : item.name;
+  }
+
+  function toggleItem(key: string) {
+    setTicked((current) =>
+      current.includes(key)
+        ? current.filter((item) => item !== key)
+        : [...current, key]
+    );
+  }
 
   function finish() {
     if (log.complete("")) {
@@ -162,7 +165,11 @@ export default function GuidedWorkout({
               <div className="flex justify-between font-label text-[11px] uppercase tracking-widest text-[#AEB6BC]">
                 <span>{step.section}</span>
                 <span>
-                  Step {index + 1} of {steps.length}
+                  {step.kind === "move"
+                    ? `Move ${index} of ${mainMoves.length}`
+                    : step.section === "Warm-up"
+                      ? "Get ready"
+                      : "Finish strong"}
                 </span>
               </div>
 
@@ -185,7 +192,10 @@ export default function GuidedWorkout({
                   return (
                     <div
                       key={section}
-                      style={{ flexGrow: count }}
+                      style={{
+                        flexGrow:
+                          section === "Main work" ? count : 2,
+                      }}
                       className="h-2 basis-0 overflow-hidden rounded bg-[#2A3136]"
                     >
                       <div
@@ -198,30 +208,85 @@ export default function GuidedWorkout({
               </div>
             </div>
 
-            {/* THE MOVE */}
+            {/* THIS STEP */}
             <div className="flex-1 pt-8">
-              <h2 className="font-display text-5xl font-extrabold uppercase leading-[0.95]">
-                {step.name}
-              </h2>
+              {step.kind === "list" ? (
+                <>
+                  <h2 className="font-display text-5xl font-extrabold uppercase leading-[0.95]">
+                    {step.section}
+                  </h2>
 
-              {step.detail && (
-                <p className="mt-4 text-lg leading-snug text-[#E4E7E9]">
-                  {step.detail}
-                </p>
-              )}
-
-              {step.section === "Main work" && notes.length > 0 && (
-                <div className="mt-6 rounded-2xl bg-[var(--brand-night-card)] p-4">
-                  <p className="font-label text-[11px] uppercase tracking-widest text-[#AEB6BC]">
-                    Coach notes
+                  <p className="mt-2 text-sm text-[#C9CFD3]">
+                    {step.section === "Warm-up"
+                      ? "Do these in order. Tap to tick them off."
+                      : "Slow down and breathe. Tap to tick them off."}
                   </p>
 
-                  <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-[#C9CFD3]">
-                    {notes.map((note) => (
-                      <li key={note}>{note}</li>
-                    ))}
+                  <ul className="mt-5 divide-y divide-[#2A3136] rounded-2xl bg-[var(--brand-night-card)]">
+                    {step.items.map((item) => {
+                      const key = `${step.section}:${item}`;
+                      const isTicked = ticked.includes(key);
+
+                      return (
+                        <li key={key}>
+                          <button
+                            type="button"
+                            aria-pressed={isTicked}
+                            onClick={() => toggleItem(key)}
+                            className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left"
+                          >
+                            <span
+                              aria-hidden="true"
+                              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border-2 text-sm font-bold ${
+                                isTicked
+                                  ? "border-[var(--brand-red)] bg-[var(--brand-red)] text-white"
+                                  : "border-[#4A535A] text-transparent"
+                              }`}
+                            >
+                              ✓
+                            </span>
+
+                            <span
+                              className={`text-[15px] leading-snug ${
+                                isTicked
+                                  ? "text-[#8E979D]"
+                                  : "text-[#F4F5F3]"
+                              }`}
+                            >
+                              {item}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
                   </ul>
-                </div>
+                </>
+              ) : (
+                <>
+                  <h2 className="font-display text-5xl font-extrabold uppercase leading-[0.95]">
+                    {step.name}
+                  </h2>
+
+                  {step.detail && (
+                    <p className="mt-4 text-lg leading-snug text-[#E4E7E9]">
+                      {step.detail}
+                    </p>
+                  )}
+
+                  {notes.length > 0 && (
+                    <div className="mt-6 rounded-2xl bg-[var(--brand-night-card)] p-4">
+                      <p className="font-label text-[11px] uppercase tracking-widest text-[#AEB6BC]">
+                        Coach notes
+                      </p>
+
+                      <ul className="mt-2 space-y-1.5 text-sm leading-relaxed text-[#C9CFD3]">
+                        {notes.map((note) => (
+                          <li key={note}>{note}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
@@ -252,7 +317,9 @@ export default function GuidedWorkout({
                   onClick={() => setIndex(index + 1)}
                   className="flex h-14 items-center justify-center gap-2 rounded-2xl bg-[#F4F5F3] px-4 text-base font-bold text-[var(--brand-night)]"
                 >
-                  <span className="truncate">Next · {next.name}</span>
+                  <span className="truncate">
+                    Next · {stepName(next)}
+                  </span>
                   <span aria-hidden="true">→</span>
                 </button>
               )}
