@@ -29,9 +29,6 @@ export default function AppHeader({ active }: { active: Tab }) {
           <p className="font-display text-2xl font-extrabold uppercase leading-none text-[var(--brand-ink)]">
             JHFEMS Fitness
           </p>
-          <p className="mt-0.5 font-label text-[10px] uppercase tracking-widest text-[var(--brand-muted)]">
-            Jackson Hole Fire/EMS
-          </p>
         </div>
       </Link>
 

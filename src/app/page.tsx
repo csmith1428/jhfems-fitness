@@ -296,10 +296,6 @@ export default function HomePage() {
             ›
           </span>
         </Link>
-
-        <footer className="mt-10 border-t border-[#E3E6E2] pt-5 font-label text-[11px] text-[var(--brand-muted)]">
-          Jackson Hole Fire/EMS · Fitness & Wellness
-        </footer>
       </div>
     </main>
   );

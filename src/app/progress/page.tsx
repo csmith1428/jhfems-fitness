@@ -225,11 +225,7 @@ export default function ProgressPage() {
         )}
 
         <footer className="mt-12 border-t border-[#E3E6E2] pt-5">
-          <p className="font-label text-[11px] text-[var(--brand-muted)]">
-            Jackson Hole Fire/EMS · Fitness & Wellness
-          </p>
-
-          <p className="mt-3 max-w-xl text-xs leading-relaxed text-[var(--brand-muted)]">
+          <p className="max-w-xl text-xs leading-relaxed text-[var(--brand-muted)]">
             Development preview: workout history is stored in this
             browser only. It does not sync between devices, and
             clearing browser data may remove it. Avoid entering
