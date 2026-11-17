@@ -27,7 +27,7 @@ async function WorkoutDetails({
           </h1>
 
           <p className="mt-3 text-[#596A74]">
-            This workout isn't available in the program.
+            This workout isn&apos;t available in the program.
           </p>
 
           <Link
@@ -180,7 +180,7 @@ async function WorkoutDetails({
               </p>
 
               <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                Today's Training
+                Today&apos;s Training
               </h2>
             </div>
 

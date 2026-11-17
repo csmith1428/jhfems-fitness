@@ -307,7 +307,7 @@ export default function WorkoutDisplay({
 
         {saveError && (
           <p role="alert" className="mt-4 text-xs text-[#B9252B]">
-            Checklist changes couldn't be saved in this browser.
+            Checklist changes couldn&apos;t be saved in this browser.
           </p>
         )}
       </section>
