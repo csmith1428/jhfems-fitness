@@ -162,10 +162,6 @@ export default function ProgramPage() {
             </div>
           )}
         </section>
-
-        <footer className="mt-12 border-t border-[#E3E6E2] pt-5 font-label text-[11px] text-[var(--brand-muted)]">
-          Jackson Hole Fire/EMS · Fitness & Wellness
-        </footer>
       </div>
     </main>
   );
