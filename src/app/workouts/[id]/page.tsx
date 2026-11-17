@@ -193,7 +193,10 @@ async function WorkoutDetails({
             aria-label="Workout completion and history"
             className="mt-8"
           >
-            <WorkoutCompletion workoutId={workout.id} />
+            <WorkoutCompletion
+              key={workout.id}
+              workoutId={workout.id}
+            />
           </section>
 
         </div>

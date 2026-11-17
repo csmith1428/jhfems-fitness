@@ -2,7 +2,11 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import {
+  useStoredString,
+  writeStoredString,
+} from "@/lib/useStoredString";
 
 type WorkoutSession = {
   id: string;
@@ -42,65 +46,55 @@ function formatDate(value: string) {
   });
 }
 
+// Returns null when the stored value is missing the expected shape,
+// so we never overwrite records we couldn't understand.
+function parseHistory(saved: string | null): WorkoutSession[] | null {
+  try {
+    const parsed: unknown = saved ? JSON.parse(saved) : [];
+
+    return Array.isArray(parsed) && parsed.every(isWorkoutSession)
+      ? parsed
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+// Per-workout UI state (notes, undo) resets because the parent
+// renders this component with key={workoutId}.
 export default function WorkoutCompletion({
   workoutId,
 }: {
   workoutId: string;
 }) {
-  const [sessions, setSessions] = useState<WorkoutSession[]>([]);
-  const [loaded, setLoaded] = useState(false);
-  const [canWrite, setCanWrite] = useState(false);
+  const stored = useStoredString(STORAGE_KEY);
   const [notes, setNotes] = useState("");
   const [lastSessionId, setLastSessionId] = useState<string | null>(null);
-  const [error, setError] = useState("");
+  const [saveError, setSaveError] = useState("");
   const [notice, setNotice] = useState("");
 
-  useEffect(() => {
-    setLoaded(false);
-    setCanWrite(false);
-    setError("");
+  const loaded = stored.status !== "loading";
+  const history =
+    stored.status === "ready" ? parseHistory(stored.value) : null;
+  const canWrite = history !== null;
+  const sessions = history ?? [];
 
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      const parsed: unknown = saved ? JSON.parse(saved) : [];
+  const error =
+    saveError ||
+    (loaded && !canWrite
+      ? "Workout history couldn't be loaded. No records were changed."
+      : "");
 
-      if (
-        !Array.isArray(parsed) ||
-        !parsed.every(isWorkoutSession)
-      ) {
-        throw new Error("Invalid workout history");
-      }
-
-      setSessions(parsed);
-      setCanWrite(true);
-    } catch (err) {
-      console.error("Unable to load history:", err);
-      setError(
-        "Workout history couldn't be loaded. No records were changed."
-      );
-    }
-
-    setNotes("");
-    setLastSessionId(null);
-    setNotice("");
-    setLoaded(true);
-  }, [workoutId]);
-
-  function saveHistory(history: WorkoutSession[]) {
+  function saveHistory(updated: WorkoutSession[]) {
     if (!canWrite) return false;
 
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(history)
-      );
-
-      setSessions(history);
-      setError("");
+      writeStoredString(STORAGE_KEY, JSON.stringify(updated));
+      setSaveError("");
       return true;
     } catch (err) {
       console.error("Unable to save history:", err);
-      setError(
+      setSaveError(
         "Unable to save your workout. Please check browser storage."
       );
       return false;

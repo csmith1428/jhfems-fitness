@@ -1,8 +1,12 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { workoutLibrary } from "@/data/workouts";
+import {
+  useStoredString,
+  writeStoredString,
+} from "@/lib/useStoredString";
 
 type Workout = (typeof workoutLibrary)[number];
 type Level = "beginner" | "standard" | "advanced";
@@ -39,9 +43,7 @@ export default function WorkoutDisplay({
   workout: Workout;
 }) {
   const [level, setLevel] = useState<Level>("standard");
-  const [checked, setChecked] = useState<number[]>([]);
-  const [loadedKey, setLoadedKey] = useState("");
-  const [saveError, setSaveError] = useState(false);
+  const [writeError, setWriteError] = useState(false);
 
   const exercises = workout.scaling
     ? workout.scaling[level]
@@ -61,41 +63,39 @@ export default function WorkoutDisplay({
   const storageKey =
     `jhfems-exercise-checks:${workout.id}:${level}`;
 
-  useEffect(() => {
+  const stored = useStoredString(storageKey);
+
+  // null means the saved checklist couldn't be read.
+  let savedChecks: number[] | null = [];
+
+  if (stored.status === "unavailable") {
+    savedChecks = null;
+  } else if (stored.status === "ready" && stored.value) {
     try {
-      const saved = localStorage.getItem(storageKey);
-      const parsed: unknown = saved
-        ? JSON.parse(saved)
-        : [];
+      const parsed: unknown = JSON.parse(stored.value);
 
-      if (
-        !Array.isArray(parsed) ||
-        !parsed.every(
-          (item) =>
-            Number.isInteger(item) &&
-            item >= 0
+      savedChecks =
+        Array.isArray(parsed) &&
+        parsed.every(
+          (item) => Number.isInteger(item) && item >= 0
         )
-      ) {
-        throw new Error("Invalid checklist data");
-      }
-
-      setChecked(
-        [...new Set(parsed as number[])].filter(
-          (index) => index < mainItems.length
-        )
-      );
-
-      setSaveError(false);
+          ? [...new Set(parsed as number[])].filter(
+              (index) => index < mainItems.length
+            )
+          : null;
     } catch {
-      setChecked([]);
-      setSaveError(true);
+      savedChecks = null;
     }
+  }
 
-    setLoadedKey(storageKey);
-  }, [storageKey, mainItems.length]);
+  const loadError = savedChecks === null;
+  const saveError = loadError || writeError;
+  const currentChecked = savedChecks ?? [];
 
-  const currentChecked =
-    loadedKey === storageKey ? checked : [];
+  function chooseLevel(option: Level) {
+    setLevel(option);
+    setWriteError(false);
+  }
 
   const completedCount = currentChecked.length;
   const totalCount = mainItems.length;
@@ -110,27 +110,20 @@ export default function WorkoutDisplay({
       ? currentChecked.filter((item) => item !== index)
       : [...currentChecked, index];
 
-    setChecked(next);
-
     try {
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify(next)
-      );
-      setSaveError(false);
+      writeStoredString(storageKey, JSON.stringify(next));
+      setWriteError(false);
     } catch {
-      setSaveError(true);
+      setWriteError(true);
     }
   }
 
   function resetChecklist() {
-    setChecked([]);
-
     try {
-      localStorage.removeItem(storageKey);
-      setSaveError(false);
+      writeStoredString(storageKey, null);
+      setWriteError(false);
     } catch {
-      setSaveError(true);
+      setWriteError(true);
     }
   }
 
@@ -159,7 +152,7 @@ export default function WorkoutDisplay({
                   key={option}
                   type="button"
                   aria-pressed={selected}
-                  onClick={() => setLevel(option)}
+                  onClick={() => chooseLevel(option)}
                   className={`min-h-12 rounded-lg border px-2 py-3 text-xs font-semibold capitalize transition-all sm:text-sm ${
                     selected
                       ? "border-[#D83036] bg-[#D83036] text-white"
