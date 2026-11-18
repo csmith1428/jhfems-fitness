@@ -12,7 +12,7 @@
 3. **Conditioning** — aerobic, intervals, or structured work capacity.
 4. **Functional Fitness** — functional movement, circuits, AMRAP, EMOM, or MetCon format.
 
-**Current reported content:** Weeks 1 through 4 (sixteen workouts) have been entered into the Next.js workout library. These are **not** the complete 12-week program. Verify in `src/data/workouts.ts` before expanding or revising content.
+**Current reported content:** Weeks 1 through 5 (twenty workouts) have been entered into the Next.js workout library. These are **not** the complete 12-week program. Verify in `src/data/workouts.ts` before expanding or revising content.
 
 A complete cycle should follow a coherent progression, alternate appropriate training stress, and support recovery. Exact load, volume, progression phases, deloads, and exercise suitability should be reviewed by the program author before publication; do not fill unfinished weeks with unsupported prescriptions just to reach 48.
 
@@ -52,7 +52,7 @@ export type Workout = {
 };
 
 export const workoutLibrary: Workout[] = [
-  // Week 1–4 workouts currently reported; inspect live data before editing.
+  // Week 1–5 workouts currently reported; inspect live data before editing.
 ];
 ```
 
