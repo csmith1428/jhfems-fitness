@@ -57,8 +57,8 @@ export default function SetupPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--brand-canvas)] text-[var(--brand-ink)]">
-      <div className="mx-auto flex min-h-screen max-w-md flex-col px-5 pb-8 pt-7">
+    <main className="min-h-dvh bg-[var(--brand-canvas)] text-[var(--brand-ink)]">
+      <div className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-7">
         <div className="flex-1">
           <div>
             <p className="font-label text-[12px] uppercase tracking-widest text-[#C2272D]">
