@@ -1,5 +1,9 @@
 # Design system — Tactical Energy
 
+> **Update, 2026-11-17: look-and-feel refresh (supersedes the palette and type below where they differ).**
+> The live app now uses: cool off-white canvas `#F8F9F7`, near-black `#14181B` for main buttons and the dark gym mode (`#101315`), brand red `#D83036`, slate `#34424B` (recovery weeks), white raised cards with soft shadows, **Barlow Condensed** (bold) for titles and big numbers, **IBM Plex Mono** for small labels, and Geist for body text. Progress is shown as bars of little blocks. Each screen has one main button. No beige or tan. Tokens live in `src/app/brand.css`.
+
+
 **Approved direction:** The *middle* of the three generated brand boards, selected 2026-11-10.  
 **Status:** Palette and overall style approved. Specific fonts, logo, name, dimensions, and components below are implementation recommendations until reviewed in the app.
 

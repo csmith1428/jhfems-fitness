@@ -38,3 +38,21 @@ export function getCurrentWeek(now: Date = new Date()): number {
 
   return Math.min(Math.max(week, 1), TOTAL_WEEKS);
 }
+
+/*
+  The shape of the 12 weeks, used for labels on the screens.
+  Weeks 4 and 8 are recovery weeks. Week 12 repeats Week 1
+  so people can see how far they came.
+*/
+export function weekPhase(week: number): {
+  label: string;
+  recovery: boolean;
+} {
+  if (week === 4 || week === 8) {
+    return { label: "Recovery week", recovery: true };
+  }
+  if (week <= 3) return { label: "Build phase", recovery: false };
+  if (week <= 7) return { label: "Build harder", recovery: false };
+  if (week <= 11) return { label: "Hardest weeks", recovery: false };
+  return { label: "Check-in week", recovery: false };
+}

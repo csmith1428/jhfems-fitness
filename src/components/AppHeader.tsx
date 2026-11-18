@@ -1,4 +1,3 @@
-
 import Link from "next/link";
 
 type Tab = "home" | "workouts" | "program" | "progress";
@@ -12,26 +11,23 @@ const links: { label: string; href: string; tab: Tab }[] = [
 
 export default function AppHeader({ active }: { active: Tab }) {
   return (
-    <header className="mb-7 flex items-center justify-between gap-5 border-b border-[#DEE3E4] pb-5">
+    <header className="mb-6 flex items-center justify-between gap-5">
       <Link href="/" className="flex min-w-0 items-center gap-3">
         <div
           aria-hidden="true"
-          className="flex h-11 w-11 shrink-0 items-center justify-center gap-1 rounded-xl bg-[#292E31]"
+          className="flex h-10 w-10 shrink-0 items-center justify-center gap-1 rounded-xl bg-[var(--brand-night)]"
         >
           {[0, 1, 2].map((item) => (
             <span
               key={item}
-              className="h-5 w-1.5 -skew-x-[22deg] bg-[#D83036]"
+              className="h-4 w-1.5 -skew-x-[22deg] bg-[var(--brand-red)]"
             />
           ))}
         </div>
 
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold tracking-[0.12em] text-[#657A86]">
-            JACKSON HOLE FIRE/EMS
-          </p>
-          <p className="text-lg font-extrabold tracking-tight text-[#292E31]">
-            FITNESS <span className="text-[#D83036]">&</span> WELLNESS
+          <p className="font-display text-2xl font-extrabold uppercase leading-none text-[var(--brand-ink)]">
+            JHFEMS Fitness
           </p>
         </div>
       </Link>
@@ -48,10 +44,10 @@ export default function AppHeader({ active }: { active: Tab }) {
               key={link.href}
               href={link.href}
               aria-current={selected ? "page" : undefined}
-              className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+              className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
                 selected
-                  ? "border-[#292E31] bg-[#292E31] text-white"
-                  : "border-[#D9DEDF] bg-white text-[#293035] hover:bg-[#EEF2F3]"
+                  ? "bg-[var(--brand-night)] text-white"
+                  : "bg-white text-[var(--brand-ink)] shadow-[0_1px_4px_rgba(20,24,27,0.10)] hover:bg-[#EEF0EC]"
               }`}
             >
               {link.label}

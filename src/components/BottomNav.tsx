@@ -24,7 +24,7 @@ function NavIcon({ name }: { name: IconName }) {
     viewBox: "0 0 24 24",
     fill: "none",
     stroke: "currentColor",
-    strokeWidth: 1.8,
+    strokeWidth: 2.2,
     strokeLinecap: "round" as const,
     strokeLinejoin: "round" as const,
     "aria-hidden": true as const,
@@ -77,7 +77,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Mobile navigation"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-[#DDE2E4] bg-white/95 shadow-[0_-5px_22px_rgba(25,35,40,0.07)] backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-[#E3E6E2] bg-white/95 shadow-[0_-5px_22px_rgba(20,24,27,0.07)] backdrop-blur-md md:hidden"
       style={{
         paddingBottom: "env(safe-area-inset-bottom)",
       }}
@@ -98,7 +98,7 @@ export default function BottomNav() {
               className={`relative flex min-h-16 flex-col items-center justify-center gap-1 px-1 py-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#D83036] ${
                 active
                   ? "text-[#D83036]"
-                  : "text-[#738087] hover:text-[#293035]"
+                  : "text-[#5B6670] hover:text-[#14181B]"
               }`}
             >
               {active && (

@@ -1,18 +1,10 @@
-
 "use client";
 
 import Link from "next/link";
+import AppHeader from "@/components/AppHeader";
 import { workoutLibrary } from "@/data/workouts";
 import { useStoredString } from "@/lib/useStoredString";
-
-type WorkoutSession = {
-  id: string;
-  workoutId: string;
-  completedAt: string;
-  notes: string;
-};
-
-const STORAGE_KEY = "jhfems-workout-history";
+import { HISTORY_KEY, parseHistory } from "@/lib/workoutHistory";
 
 const workoutNames: Record<string, string> = {
   "strength-a": "Strength A",
@@ -21,40 +13,18 @@ const workoutNames: Record<string, string> = {
   functional: "Functional Fitness",
 };
 
+const feelLabel = {
+  easy: "Easy",
+  "just-right": "Just right",
+  tough: "Tough",
+} as const;
+
 function getWorkoutName(workoutId: string) {
   const workout = workoutLibrary.find(
     (item) => item.id === workoutId
   );
 
   return workout?.title ?? workoutNames[workoutId] ?? workoutId;
-}
-
-function isWorkoutSession(value: unknown): value is WorkoutSession {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const item = value as Partial<WorkoutSession>;
-
-  return (
-    typeof item.id === "string" &&
-    typeof item.workoutId === "string" &&
-    typeof item.completedAt === "string" &&
-    typeof item.notes === "string"
-  );
-}
-
-// Returns null when the stored value is missing the expected shape.
-function parseHistory(saved: string | null): WorkoutSession[] | null {
-  try {
-    const parsed: unknown = saved ? JSON.parse(saved) : [];
-
-    return Array.isArray(parsed) && parsed.every(isWorkoutSession)
-      ? parsed
-      : null;
-  } catch {
-    return null;
-  }
 }
 
 function formatDate(dateString: string) {
@@ -72,7 +42,7 @@ function formatDate(dateString: string) {
 }
 
 export default function ProgressPage() {
-  const stored = useStoredString(STORAGE_KEY);
+  const stored = useStoredString(HISTORY_KEY);
   const loaded = stored.status !== "loading";
   const history =
     stored.status === "ready" ? parseHistory(stored.value) : null;
@@ -101,97 +71,38 @@ export default function ProgressPage() {
   ).size;
 
   return (
-    <main className="min-h-screen bg-[#F8F9F7] text-[#293035]">
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8 sm:py-10">
+    <main className="min-h-screen bg-[var(--brand-canvas)] pb-28 text-[var(--brand-ink)] md:pb-10">
+      <div className="mx-auto max-w-2xl px-5 pt-6 sm:px-8 sm:pt-9">
+        <AppHeader active="progress" />
 
-        {/* HEADER */}
-        <header className="mb-9 flex flex-col gap-6 border-b border-[#D9DEDF] pb-7 md:flex-row md:items-center md:justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-4 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E94F37]"
-          >
-            <div
-              aria-hidden="true"
-              className="flex h-12 w-12 shrink-0 items-center justify-center gap-1 rounded-lg bg-[#293035]"
-            >
-              {[0, 1, 2].map((line) => (
-                <span
-                  key={line}
-                  className="h-6 w-1.5 -skew-x-[22deg] bg-[#E94F37]"
-                />
-              ))}
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold tracking-wider text-[#526D7B]">
-                JACKSON HOLE FIRE/EMS
-              </p>
-
-              <p className="mt-1 text-xl font-extrabold tracking-tight sm:text-2xl">
-                FITNESS <span className="text-[#E94F37]">&</span> WELLNESS
-              </p>
-            </div>
-          </Link>
-
-          <nav
-            aria-label="Main navigation"
-            className="flex flex-wrap gap-3"
-          >
-            <Link
-              href="/program"
-              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#CBD4D7] bg-white px-4 py-2 text-sm font-semibold transition-colors hover:border-[#34424B] hover:bg-[#EEF2F3] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E94F37]"
-            >
-              12-Week Program
-            </Link>
-
-            <Link
-              href="/progress"
-              aria-current="page"
-              className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#293035] bg-[#293035] px-4 py-2 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#E94F37]"
-            >
-              My Progress
-            </Link>
-          </nav>
-        </header>
-
-        {/* PAGE HERO */}
-        <section className="relative mb-10 overflow-hidden rounded-2xl bg-[#292E31] p-7 text-[#F6F7EB] sm:p-10">
-          <div
-            aria-hidden="true"
-            className="absolute right-0 top-0 h-full w-1 bg-[#E94F37]"
-          />
-
-          <p className="mb-4 text-xs font-semibold tracking-wider text-[#A8C0CD]">
-            PERSONAL TRAINING
+        {/* PAGE HEADING */}
+        <section>
+          <p className="font-label text-[11px] uppercase tracking-widest text-[var(--brand-muted)]">
+            Only you can see this
           </p>
 
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
-            My Progress
+          <h1 className="mt-1 font-display text-5xl font-extrabold uppercase leading-none">
+            My progress
           </h1>
-
-          <p className="mt-5 max-w-xl text-sm leading-relaxed text-[#CBD5D9] sm:text-base">
-            Your completed workouts, training consistency,
-            and personal performance notes in one place.
-          </p>
         </section>
 
         {!loaded ? (
           <section
             role="status"
-            className="rounded-2xl border border-[#D9DEDF] bg-white p-8 text-sm text-[#596A74]"
+            className="mt-6 rounded-2xl bg-white p-8 text-sm text-[var(--brand-muted)]"
           >
             Loading your training history...
           </section>
         ) : loadError ? (
           <section
             role="alert"
-            className="rounded-2xl border border-[#E94F37] bg-white p-8"
+            className="mt-6 rounded-2xl border border-[var(--brand-red)] bg-white p-8"
           >
-            <h2 className="text-lg font-bold">
+            <h2 className="font-display text-2xl font-extrabold uppercase">
               Unable to load workout history
             </h2>
 
-            <p className="mt-2 text-sm text-[#596A74]">
+            <p className="mt-2 text-sm text-[var(--brand-muted)]">
               Your stored records have not been changed.
               Please check your browser storage before
               recording another workout.
@@ -199,165 +110,126 @@ export default function ProgressPage() {
           </section>
         ) : (
           <>
-            {/* TRAINING OVERVIEW */}
-            <section className="mb-10">
-              <div className="mb-6">
-                <p className="mb-2 text-xs font-semibold tracking-wider text-[#526D7B]">
-                  TRAINING OVERVIEW
+            {/* BIG NUMBERS */}
+            <section className="mt-6 grid grid-cols-2 gap-3">
+              <div className="rounded-3xl bg-[var(--brand-night)] p-5 text-white">
+                <p className="font-label text-[11px] uppercase tracking-widest text-[#AEB6BC]">
+                  Workouts
                 </p>
 
-                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                  Your Activity
-                </h2>
+                <p className="mt-3 font-display text-6xl font-extrabold leading-none tabular-nums">
+                  {sessions.length}
+                </p>
+
+                <p className="mt-2 text-xs text-[#C9CFD3]">
+                  Completed sessions
+                </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="rounded-3xl bg-[var(--brand-night)] p-5 text-white">
+                <p className="font-label text-[11px] uppercase tracking-widest text-[#AEB6BC]">
+                  Training days
+                </p>
 
-                {/* TOTAL WORKOUTS */}
-                <div className="rounded-2xl bg-[#34424B] p-5 text-[#F6F7EB] sm:p-8">
-                  <p className="text-xs font-semibold text-[#C4D3DB] sm:text-sm">
-                    Total Workouts
-                  </p>
+                <p className="mt-3 font-display text-6xl font-extrabold leading-none tabular-nums">
+                  {trainingDays}
+                </p>
 
-                  <p className="mt-5 text-4xl font-extrabold tabular-nums sm:text-6xl">
-                    {sessions.length}
-                  </p>
-
-                  <div className="mt-6 border-t border-white/15 pt-4">
-                    <p className="text-xs leading-relaxed text-[#CBD5D9] sm:text-sm">
-                      Completed training sessions
-                    </p>
-                  </div>
-                </div>
-
-                {/* TRAINING DAYS */}
-                <div className="rounded-2xl bg-[#34424B] p-5 text-[#F6F7EB] sm:p-8">
-                  <p className="text-xs font-semibold text-[#C4D3DB] sm:text-sm">
-                    Training Days
-                  </p>
-
-                  <p className="mt-5 text-4xl font-extrabold tabular-nums sm:text-6xl">
-                    {trainingDays}
-                  </p>
-
-                  <div className="mt-6 border-t border-white/15 pt-4">
-                    <p className="text-xs leading-relaxed text-[#CBD5D9] sm:text-sm">
-                      Days with recorded activity
-                    </p>
-                  </div>
-                </div>
+                <p className="mt-2 text-xs text-[#C9CFD3]">
+                  Days with activity
+                </p>
               </div>
             </section>
 
             {/* WORKOUT HISTORY */}
-            <section className="overflow-hidden rounded-2xl border border-[#D9DEDF] bg-white">
+            <section className="mt-8">
+              <div className="flex items-end justify-between gap-4 border-b-2 border-[var(--brand-ink)] pb-1.5">
+                <h2 className="font-display text-2xl font-extrabold uppercase">
+                  Workout history
+                </h2>
 
-              <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E0E5E7] p-6 sm:p-8">
-                <div>
-                  <p className="mb-2 text-xs font-semibold tracking-wider text-[#526D7B]">
-                    PERSONAL TRAINING RECORD
-                  </p>
-
-                  <h2 className="text-2xl font-bold tracking-tight">
-                    Workout History
-                  </h2>
-
-                  <p className="mt-2 text-sm text-[#596A74]">
-                    Most recent sessions first.
-                  </p>
-                </div>
-
-                <span className="text-sm font-medium text-[#596A74]">
+                <span className="pb-0.5 font-label text-[11px] uppercase tracking-widest text-[var(--brand-muted)]">
                   {sessions.length} recorded
                 </span>
               </div>
 
-              <div className="p-5 sm:p-8">
-                {sortedSessions.length === 0 ? (
-                  <div className="py-10 text-center">
-                    <h3 className="text-lg font-bold">
-                      No workouts recorded yet
-                    </h3>
+              {sortedSessions.length === 0 ? (
+                <div className="py-10 text-center">
+                  <h3 className="font-display text-2xl font-extrabold uppercase">
+                    No workouts recorded yet
+                  </h3>
 
-                    <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-[#596A74]">
-                      Complete a workout to begin building
-                      your personal training history.
-                    </p>
+                  <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--brand-muted)]">
+                    Finish a workout to start building your
+                    history.
+                  </p>
 
-                    <Link
-                      href="/"
-                      className="mt-6 inline-flex min-h-11 items-center justify-center rounded-lg bg-[#E94F37] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#C53D2A] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#E94F37]"
-                    >
-                      View Workouts →
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-[#E0E5E7]">
-                    {sortedSessions.map((session) => (
-                      <article
-                        key={session.id}
-                        className="py-6 first:pt-0 last:pb-0"
-                      >
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div className="flex min-w-0 items-start gap-3">
-
-                            <span
-                              aria-hidden="true"
-                              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E94F37] text-sm font-bold text-white"
-                            >
-                              ✓
-                            </span>
-
-                            <div>
-                              <h3 className="text-lg font-bold tracking-tight text-[#293035]">
-                                {getWorkoutName(session.workoutId)}
-                              </h3>
-
-                              <p className="mt-1 text-xs text-[#596A74]">
-                                Completed session
-                              </p>
-                            </div>
-                          </div>
-
-                          <time
-                            dateTime={session.completedAt}
-                            className="text-sm text-[#596A74]"
+                  <Link
+                    href="/workouts"
+                    className="mt-5 inline-flex min-h-12 items-center justify-center rounded-2xl bg-[var(--brand-red)] px-6 text-sm font-bold text-white transition-colors hover:bg-[var(--brand-red-hover)]"
+                  >
+                    View workouts →
+                  </Link>
+                </div>
+              ) : (
+                <div className="divide-y divide-[#E3E6E2]">
+                  {sortedSessions.map((session) => (
+                    <article key={session.id} className="py-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-start gap-3">
+                          <span
+                            aria-hidden="true"
+                            className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[var(--brand-red)] text-sm font-bold text-white"
                           >
-                            {formatDate(session.completedAt)}
-                          </time>
+                            ✓
+                          </span>
+
+                          <div>
+                            <h3 className="text-base font-semibold">
+                              {getWorkoutName(session.workoutId)}
+                            </h3>
+
+                            {session.feel && (
+                              <p className="font-label text-[11px] uppercase tracking-wide text-[var(--brand-muted)]">
+                                Felt: {feelLabel[session.feel]}
+                              </p>
+                            )}
+                          </div>
                         </div>
 
-                        {session.notes && (
-                          <div className="mt-4 rounded-lg bg-[#F1F4F5] p-4 sm:ml-10">
-                            <p className="mb-2 text-xs font-semibold text-[#526D7B]">
-                              Session notes
-                            </p>
+                        <time
+                          dateTime={session.completedAt}
+                          className="text-sm text-[var(--brand-muted)]"
+                        >
+                          {formatDate(session.completedAt)}
+                        </time>
+                      </div>
 
-                            <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-[#34424B]">
-                              {session.notes}
-                            </p>
-                          </div>
-                        )}
-                      </article>
-                    ))}
-                  </div>
-                )}
-              </div>
+                      {session.notes && (
+                        <div className="mt-3 rounded-xl bg-white p-4 sm:ml-10">
+                          <p className="mb-1 font-label text-[11px] uppercase tracking-widest text-[var(--brand-muted)]">
+                            Session notes
+                          </p>
+
+                          <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">
+                            {session.notes}
+                          </p>
+                        </div>
+                      )}
+                    </article>
+                  ))}
+                </div>
+              )}
             </section>
           </>
         )}
 
-        {/* FOOTER */}
-        <footer className="mt-14 border-t border-[#D9DEDF] pt-6">
-          <p className="text-xs text-[#596A74]">
-            Jackson Hole Fire/EMS · Fitness & Wellness
-          </p>
-
-          <p className="mt-3 max-w-xl text-xs leading-relaxed text-[#718087]">
-            Development preview: Workout history is stored
-            in this browser only. It does not sync between
-            devices, and clearing browser data may remove it.
-            Avoid entering sensitive personal information.
+        <footer className="mt-12 border-t border-[#E3E6E2] pt-5">
+          <p className="max-w-xl text-xs leading-relaxed text-[var(--brand-muted)]">
+            Development preview: workout history is stored in this
+            browser only. It does not sync between devices, and
+            clearing browser data may remove it. Avoid entering
+            sensitive personal information.
           </p>
         </footer>
       </div>

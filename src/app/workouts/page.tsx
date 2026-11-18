@@ -5,9 +5,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import AppHeader from "@/components/AppHeader";
 import { workoutLibrary } from "@/data/workouts";
-import { getCurrentWeek } from "@/lib/programWeek";
+import { useCurrentWeek } from "@/lib/useCurrentWeek";
 
-const CURRENT_WEEK = getCurrentWeek();
 const STORAGE_KEY = "jhfems-workout-history";
 
 const workoutOrder: Record<string, number> = {
@@ -17,14 +16,6 @@ const workoutOrder: Record<string, number> = {
   "Functional Fitness": 3,
 };
 
-const workouts = workoutLibrary
-  .filter((workout) => workout.week === CURRENT_WEEK)
-  .sort(
-    (a, b) =>
-      (workoutOrder[a.title] ?? 99) -
-      (workoutOrder[b.title] ?? 99)
-  );
-
 function focusLabel(category: string) {
   return category.toUpperCase() === "ENGINE"
     ? "CARDIO + ENDURANCE"
@@ -32,6 +23,18 @@ function focusLabel(category: string) {
 }
 
 export default function WorkoutsPage() {
+  const currentWeek = useCurrentWeek();
+  const ready = currentWeek !== null;
+  const CURRENT_WEEK = currentWeek ?? 1;
+
+  const workouts = workoutLibrary
+    .filter((workout) => workout.week === CURRENT_WEEK)
+    .sort(
+      (a, b) =>
+        (workoutOrder[a.title] ?? 99) -
+        (workoutOrder[b.title] ?? 99)
+    );
+
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [historyError, setHistoryError] = useState(false);
 
@@ -78,20 +81,24 @@ export default function WorkoutsPage() {
 
   return (
     <main className="min-h-screen bg-[var(--brand-canvas)] pb-28 text-[var(--brand-ink)] md:pb-10">
-      <div className="mx-auto max-w-6xl px-5 pt-6 sm:px-8 sm:pt-9">
+      <div
+        className={`mx-auto max-w-6xl px-5 pt-6 sm:px-8 sm:pt-9 ${
+          ready ? "" : "invisible"
+        }`}
+      >
         <AppHeader active="workouts" />
 
-        <section className="mb-7">
-          <p className="mb-2 text-xs font-semibold tracking-wider text-[var(--brand-muted)]">
-            WEEK {String(CURRENT_WEEK).padStart(2, "0")} OF 12
+        <section className="mb-6">
+          <p className="font-label text-[11px] uppercase tracking-widest text-[var(--brand-red)]">
+            Week {String(CURRENT_WEEK).padStart(2, "0")} of 12
           </p>
 
-          <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl">
-            Your Workouts
+          <h1 className="mt-1 font-display text-5xl font-extrabold uppercase leading-none">
+            Your workouts
           </h1>
 
           <p className="mt-2 text-sm text-[var(--brand-muted)]">
-            Choose a session and train at your level.
+            Pick a session and train at your level.
           </p>
         </section>
 
@@ -110,34 +117,29 @@ export default function WorkoutsPage() {
               <Link
                 key={workout.id}
                 href={`/workouts/${workout.id}`}
-                className="group flex min-h-48 flex-col justify-between rounded-2xl border border-white/10 bg-[var(--brand-slate)] p-6 text-white transition-all duration-200 hover:-translate-y-0.5 hover:bg-[var(--brand-slate-hover)] hover:shadow-lg"
+                className="group flex min-h-44 flex-col justify-between rounded-3xl bg-white p-6 shadow-[0_2px_10px_rgba(20,24,27,0.07)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(20,24,27,0.12)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-red)]"
               >
                 <div>
-                  <div className="mb-6 flex items-center justify-between gap-3">
-                    <span className="text-xs font-semibold tracking-wider text-[#B7C8D0]">
-                      TRAINING SESSION
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <span className="font-label text-[11px] uppercase tracking-widest text-[var(--brand-red)]">
+                      {focusLabel(workout.category)}
                     </span>
 
                     {isDone && (
-                      <span className="rounded-full bg-[#52616A] px-3 py-1.5 text-xs font-semibold">
-                        ✓ Completed
+                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-[var(--brand-red)] text-sm font-bold text-white">
+                        <span className="sr-only">Completed</span>
+                        <span aria-hidden="true">✓</span>
                       </span>
                     )}
                   </div>
 
-                  <h2 className="text-2xl font-extrabold tracking-tight">
+                  <h2 className="font-display text-4xl font-extrabold uppercase leading-none">
                     {workout.title}
                   </h2>
-
-                  <div className="mt-3">
-                    <span className="inline-block rounded-md bg-[var(--brand-red)] px-3 py-1.5 text-[11px] font-bold tracking-wider text-white">
-                      {focusLabel(workout.category)}
-                    </span>
-                  </div>
                 </div>
 
-                <div className="mt-8 flex items-center justify-between gap-4 border-t border-white/15 pt-4">
-                  <span className="text-sm text-[#CAD6DB]">
+                <div className="mt-6 flex items-center justify-between gap-4 border-t border-[#E3E6E2] pt-4">
+                  <span className="font-label text-[11px] uppercase tracking-widest text-[var(--brand-muted)]">
                     {workout.duration}
                   </span>
 
