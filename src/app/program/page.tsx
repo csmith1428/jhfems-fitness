@@ -30,6 +30,10 @@ function focusLabel(category: string) {
     : category.toUpperCase();
 }
 
+// While running locally (npm run dev) every week is unlocked so the
+// team can preview upcoming workouts. Real users never see this.
+const PREVIEW_ALL_WEEKS = process.env.NODE_ENV === "development";
+
 export default function ProgramPage() {
   const currentWeek = useCurrentWeek();
   const ready = currentWeek !== null;
@@ -70,6 +74,12 @@ export default function ProgramPage() {
             Build, recover, build harder. Week 12 repeats Week 1 so you
             can see how far you came. Tap a week to review it.
           </p>
+
+          {PREVIEW_ALL_WEEKS && (
+            <p className="mt-2 font-label text-[11px] uppercase tracking-widest text-[var(--brand-red)]">
+              Dev preview: all weeks unlocked
+            </p>
+          )}
         </section>
 
         {/* WEEK TILES */}
@@ -79,7 +89,7 @@ export default function ProgramPage() {
         >
           {weeks.map((week) => {
             const isCurrent = week === CURRENT_WEEK;
-            const isFuture = week > CURRENT_WEEK;
+            const isFuture = week > CURRENT_WEEK && !PREVIEW_ALL_WEEKS;
             const isSelected = week === selectedWeek;
             const phase = weekPhase(week);
 
