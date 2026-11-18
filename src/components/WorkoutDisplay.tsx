@@ -8,15 +8,19 @@ import {
   useStoredString,
   writeStoredString,
 } from "@/lib/useStoredString";
+import {
+  LEVELS,
+  levelInfo,
+  saveLevel,
+  useSavedLevel,
+  type Level,
+} from "@/lib/level";
+import { progressKey, parseProgress } from "@/lib/guidedProgress";
+import { equipmentFor, shortSets } from "@/lib/workoutInfo";
 
 type Workout = (typeof workoutLibrary)[number];
-type Level = "beginner" | "standard" | "advanced";
 
-const levels: Level[] = [
-  "beginner",
-  "standard",
-  "advanced",
-];
+const levels = LEVELS;
 
 function SectionHeading({
   number,
@@ -43,18 +47,17 @@ function SectionHeading({
   );
 }
 
-const levelHelp: Record<Level, string> = {
-  beginner: "New to the gym. Learn the moves at a steady effort.",
-  standard: "Comfortable lifting. Follow the plan as written.",
-  advanced: "Strong and gym-experienced. Push it with clean form.",
-};
-
 export default function WorkoutDisplay({
   workout,
 }: {
   workout: Workout;
 }) {
-  const [level, setLevel] = useState<Level>("standard");
+  const saved = useSavedLevel();
+  const [pickedLevel, setLevel] = useState<Level | null>(null);
+  const [changing, setChanging] = useState(false);
+  // Their level from the setup screen, unless they pick another here.
+  const level: Level =
+    pickedLevel ?? (saved.status === "ready" ? saved.level : null) ?? "standard";
   const [writeError, setWriteError] = useState(false);
   const [guided, setGuided] = useState(false);
 
@@ -77,6 +80,16 @@ export default function WorkoutDisplay({
     `jhfems-exercise-checks:${workout.id}:${level}`;
 
   const stored = useStoredString(storageKey);
+
+  const progressStored = useStoredString(
+    progressKey(workout.id, level)
+  );
+  const savedProgress = parseProgress(
+    progressStored.status === "ready" ? progressStored.value : null
+  );
+
+  const equipment = equipmentFor(workout.warmup, exercises);
+  const isStrength = workout.format === "strength";
 
   // null means the saved checklist couldn't be read.
   let savedChecks: number[] | null = [];
@@ -107,6 +120,7 @@ export default function WorkoutDisplay({
 
   function chooseLevel(option: Level) {
     setLevel(option);
+    saveLevel(option);
     setWriteError(false);
   }
 
@@ -138,46 +152,99 @@ export default function WorkoutDisplay({
   return (
     <div className="space-y-4">
 
-      {/* TRAINING LEVEL */}
+      {/* YOUR LEVEL */}
       {workout.scaling && (
-        <section aria-label="Choose your level">
-          <div className="flex gap-1 rounded-2xl bg-[#E9ECE8] p-1">
-            {levels.map((option) => {
-              const selected = level === option;
+        <section
+          aria-label="Your level"
+          className="rounded-2xl bg-white p-4 shadow-[0_2px_10px_rgba(20,24,27,0.07)]"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-label text-[11px] uppercase tracking-widest text-[var(--brand-muted)]">
+                Your level
+              </p>
+              <p className="mt-0.5 text-base font-bold">
+                {levelInfo[level].label}
+                <span className="font-normal text-[var(--brand-muted)]">
+                  {" "}
+                  · {levelInfo[level].effort}
+                </span>
+              </p>
+            </div>
 
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  aria-pressed={selected}
-                  onClick={() => chooseLevel(option)}
-                  className={`min-h-11 flex-1 rounded-xl px-2 text-sm capitalize transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-red)] ${
-                    selected
-                      ? "bg-[var(--brand-night)] font-bold text-white"
-                      : "font-semibold text-[var(--brand-slate)] hover:bg-white/60"
-                  }`}
-                >
-                  {option}
-                </button>
-              );
-            })}
+            <button
+              type="button"
+              aria-expanded={changing}
+              onClick={() => setChanging((open) => !open)}
+              className="min-h-11 rounded-xl px-3 text-sm font-semibold text-[#C2272D] underline underline-offset-4"
+            >
+              {changing ? "Done" : "Change"}
+            </button>
           </div>
 
-          <p className="mt-2 px-1 text-sm text-[var(--brand-muted)]">
-            {levelHelp[level]}
-          </p>
+          {changing && (
+            <div className="mt-3 flex gap-1 rounded-2xl bg-[#E9ECE8] p-1">
+              {levels.map((option) => {
+                const selected = level === option;
+
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => chooseLevel(option)}
+                    className={`min-h-11 flex-1 rounded-xl px-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand-red)] ${
+                      selected
+                        ? "bg-[var(--brand-night)] font-bold text-white"
+                        : "font-semibold text-[var(--brand-slate)] hover:bg-white/60"
+                    }`}
+                  >
+                    {levelInfo[option].label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </section>
       )}
 
-      {/* START GUIDED MODE */}
-      <button
-        type="button"
-        onClick={() => setGuided(true)}
-        className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-night)] px-5 text-base font-bold text-white shadow-[0_8px_18px_rgba(20,24,27,0.25)] transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--brand-red)]"
-      >
-        Start guided mode
-        <span aria-hidden="true">→</span>
-      </button>
+      {/* EQUIPMENT */}
+      {equipment.length > 0 && (
+        <section aria-label="Equipment you'll need">
+          <p className="font-label text-[11px] uppercase tracking-widest text-[var(--brand-muted)]">
+            You&apos;ll need
+          </p>
+
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {equipment.map((item) => (
+              <li
+                key={item}
+                className="rounded-full border border-[#D5DAD6] bg-white px-3 py-1.5 text-sm font-semibold text-[var(--brand-slate)]"
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* START OR RESUME */}
+      <div>
+        <button
+          type="button"
+          onClick={() => setGuided(true)}
+          className="flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-night)] px-5 text-base font-bold text-white shadow-[0_8px_18px_rgba(20,24,27,0.25)] transition-colors hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--brand-red)]"
+        >
+          {savedProgress ? "Resume workout" : "Start workout"}
+          <span aria-hidden="true">→</span>
+        </button>
+
+        <p className="mt-2 px-1 text-center text-sm text-[var(--brand-muted)]">
+          {savedProgress
+            ? `Saved at ${savedProgress.title} · ${savedProgress.sub}`
+            : "Short on time? You can mark it done without logging numbers."}
+        </p>
+      </div>
 
       {guided && (
         <GuidedWorkout
@@ -217,7 +284,11 @@ export default function WorkoutDisplay({
         <SectionHeading
           number="02"
           title="Main work"
-          count={`${completedCount} of ${totalCount} checked`}
+          count={
+            isStrength
+              ? `${totalCount} moves · sets × reps`
+              : `${completedCount} of ${totalCount} checked`
+          }
         />
 
         {/* PROGRESS */}
@@ -293,15 +364,55 @@ export default function WorkoutDisplay({
                     </span>
                   )}
 
-                  <p
-                    className={`text-[15px] font-semibold leading-relaxed ${
-                      isChecked
-                        ? "text-[var(--brand-muted)]"
-                        : "text-[var(--brand-ink)]"
-                    }`}
-                  >
-                    {exercise}
-                  </p>
+                  {isStrength && exercise.includes(" — ") ? (
+                    (() => {
+                      const at = exercise.indexOf(" — ");
+                      const name = exercise.slice(0, at);
+                      const detail = exercise.slice(at + 3);
+                      const short = shortSets(detail);
+                      const more = short
+                        ? detail.slice(short.length).trim()
+                        : detail;
+
+                      return (
+                        <>
+                          <div className="flex items-baseline justify-between gap-3">
+                            <p
+                              className={`text-[15px] font-semibold leading-snug ${
+                                isChecked
+                                  ? "text-[var(--brand-muted)]"
+                                  : "text-[var(--brand-ink)]"
+                              }`}
+                            >
+                              {name}
+                            </p>
+
+                            {short && (
+                              <span className="shrink-0 font-display text-2xl font-extrabold leading-none">
+                                {short}
+                              </span>
+                            )}
+                          </div>
+
+                          {more && (
+                            <p className="mt-0.5 text-sm leading-snug text-[var(--brand-muted)]">
+                              {more}
+                            </p>
+                          )}
+                        </>
+                      );
+                    })()
+                  ) : (
+                    <p
+                      className={`text-[15px] font-semibold leading-relaxed ${
+                        isChecked
+                          ? "text-[var(--brand-muted)]"
+                          : "text-[var(--brand-ink)]"
+                      }`}
+                    >
+                      {exercise}
+                    </p>
+                  )}
                 </div>
               </button>
             );

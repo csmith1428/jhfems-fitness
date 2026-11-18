@@ -27,7 +27,7 @@ The planned initial pilot is a **12-week program** with **four workouts per week
 | Strength A | Lower + Push | Squat, press, accessories, core |
 | Strength B | Hinge + Pull | Deadlift/hinge, pulls, rows, carries |
 | Conditioning | Cardio + Endurance | Aerobic or interval capacity |
-| Functional Fitness | Work Capacity | Job-relevant circuits, carries, sled work, mixed modalities |
+| Functional Fitness | Work Capacity | Job-relevant circuits, carries, mixed modalities |
 
 - Program uses progression and progressive overload across 8–12 weeks, with specific warmups, main work, cooldowns, and appropriate rest guidance.
 - Eventually offer scaling tiers: **Beginner / Standard / Advanced**.
@@ -40,7 +40,7 @@ The planned initial pilot is a **12-week program** with **four workouts per week
 - Week 1 Strength A: squat, bench, lunge, push-ups, plank.
 - Week 1 Strength B: deadlift, pull-ups, dumbbell row, Romanian deadlift, farmer carry.
 - Week 1 Conditioning: six rounds of 2:2 on a bike.
-- Week 1 Functional Fitness: sled, farmer carry, dumbbell push press, step-ups.
+- Week 1 Functional Fitness: goblet squat, farmer carry, dumbbell push press, step-ups.
 - Week 2 Strength A has been discussed with scaling options and rest guidance.
 
 **Important:** Inspect `src/data/workouts.ts` or equivalent in the repository for the actual current workout prescription and data model. Do not assume these examples match the latest committed code.

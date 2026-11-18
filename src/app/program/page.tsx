@@ -72,7 +72,11 @@ export default function ProgramPage() {
 
           <p className="mt-2 text-sm leading-relaxed text-[var(--brand-muted)]">
             Build, recover, build harder. Week 12 repeats Week 1 so you
-            can see how far you came. Tap a week to review it.
+            can see how far you came.
+          </p>
+
+          <p className="mt-1 text-sm leading-relaxed text-[var(--brand-muted)]">
+            Missed a workout? Tap any past week to finish it late.
           </p>
 
           {PREVIEW_ALL_WEEKS && (

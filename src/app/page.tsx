@@ -7,6 +7,8 @@ import AppHeader from "@/components/AppHeader";
 import { workoutLibrary } from "@/data/workouts";
 import { TOTAL_WEEKS, weekPhase } from "@/lib/programWeek";
 import { useCurrentWeek } from "@/lib/useCurrentWeek";
+import { levelInfo, useSavedLevel } from "@/lib/level";
+import FirstRunGate from "@/components/FirstRunGate";
 
 const workoutOrder: Record<string, number> = {
   "Strength A": 0,
@@ -102,6 +104,11 @@ export default function HomePage() {
   const isLoading = historyStatus === "loading";
 
   const phase = weekPhase(CURRENT_WEEK);
+  const savedLevel = useSavedLevel();
+  const levelLabel =
+    savedLevel.status === "ready" && savedLevel.level
+      ? levelInfo[savedLevel.level].label
+      : null;
 
   return (
     <main className="min-h-screen bg-[var(--brand-canvas)] pb-28 text-[var(--brand-ink)] md:pb-10">
@@ -110,6 +117,7 @@ export default function HomePage() {
           ready ? "" : "invisible"
         }`}
       >
+        <FirstRunGate />
         <AppHeader active="home" />
 
         {/* WEEK HERO */}
@@ -176,7 +184,7 @@ export default function HomePage() {
         <section className="mt-6 rounded-3xl bg-[var(--brand-night)] p-6 text-white shadow-[0_10px_24px_rgba(20,24,27,0.22)]">
           <div className="flex items-center justify-between gap-4">
             <span className="font-label text-[11px] uppercase tracking-widest text-[#C9CFD3]">
-              {nextWorkout ? "Up next" : "This week"}
+              {nextWorkout ? "Suggested next" : "This week"}
             </span>
 
             <span className="font-label text-[11px] uppercase tracking-widest text-[#C9CFD3]">
@@ -196,7 +204,9 @@ export default function HomePage() {
 
           <p className="mt-2 text-sm text-[#C9CFD3]">
             {nextWorkout
-              ? `${nextWorkout.duration.toLowerCase()} · Beginner, Standard, Advanced`
+              ? `${nextWorkout.duration.toLowerCase()}${
+                  levelLabel ? ` · Your level: ${levelLabel}` : ""
+                }`
               : total > 0
                 ? "Nice work. Rest up and check your progress."
                 : "Workouts for this week haven't been added."}
@@ -207,7 +217,7 @@ export default function HomePage() {
               href={`/workouts/${nextWorkout.id}`}
               className="mt-5 flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-[var(--brand-red)] px-5 text-base font-bold text-white transition-colors hover:bg-[var(--brand-red-hover)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
-              Start workout
+              View workout
               <span aria-hidden="true">→</span>
             </Link>
           ) : total > 0 ? (
@@ -227,12 +237,18 @@ export default function HomePage() {
               This week
             </h2>
 
-            <Link
-              href="/workouts"
-              className="pb-0.5 text-sm font-semibold text-[var(--brand-red)] hover:underline"
-            >
-              All workouts
-            </Link>
+            <div className="flex items-baseline gap-4 pb-0.5">
+              <span className="font-label text-[11px] uppercase tracking-widest text-[var(--brand-muted)]">
+                Any order
+              </span>
+
+              <Link
+                href="/workouts"
+                className="text-sm font-semibold text-[var(--brand-red)] hover:underline"
+              >
+                All workouts
+              </Link>
+            </div>
           </div>
 
           <div>
@@ -279,6 +295,19 @@ export default function HomePage() {
               </p>
             )}
           </div>
+
+          <p className="mt-4 text-sm leading-relaxed text-[var(--brand-muted)]">
+            Do them in any order that fits your shifts. When the week
+            ends, the schedule moves on. Missed one? You can still
+            finish it late from your{" "}
+            <Link
+              href="/program"
+              className="font-semibold text-[#C2272D] underline underline-offset-4"
+            >
+              12-week map
+            </Link>
+            .
+          </p>
         </section>
       </div>
     </main>
