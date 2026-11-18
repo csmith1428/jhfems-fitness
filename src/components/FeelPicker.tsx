@@ -3,9 +3,9 @@
 import type { Feel } from "@/lib/workoutHistory";
 
 const options: { id: Feel; label: string }[] = [
-  { id: "easy", label: "Easy" },
+  { id: "easy", label: "Too easy" },
   { id: "just-right", label: "Just right" },
-  { id: "tough", label: "Tough" },
+  { id: "tough", label: "Too hard" },
 ];
 
 // "How did it feel?" (private, optional)

@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import DoneCard from "@/components/DoneCard";
 import { workoutLibrary } from "@/data/workouts";
+import { LEVELS } from "@/lib/level";
+import { progressKey } from "@/lib/guidedProgress";
+import { writeStoredString } from "@/lib/useStoredString";
 import { useWorkoutLog } from "@/lib/workoutHistory";
 
 function formatDate(value: string) {
@@ -23,9 +26,9 @@ function formatDate(value: string) {
 }
 
 const feelLabel = {
-  easy: "Easy",
+  easy: "Too easy",
   "just-right": "Just right",
-  tough: "Tough",
+  tough: "Too hard",
 } as const;
 
 // Per-workout UI state (notes, undo) resets because the parent
@@ -43,6 +46,15 @@ export default function WorkoutCompletion({
 
   function completeWorkout() {
     if (log.complete(notes)) {
+      // A finished workout has nothing left to resume.
+      for (const level of LEVELS) {
+        try {
+          writeStoredString(progressKey(workoutId, level), null);
+        } catch {
+          // Storage is blocked. Nothing was saved to clear.
+        }
+      }
+
       setNotice("Your workout has been saved.");
     }
   }

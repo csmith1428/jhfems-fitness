@@ -14,9 +14,9 @@ const workoutNames: Record<string, string> = {
 };
 
 const feelLabel = {
-  easy: "Easy",
+  easy: "Too easy",
   "just-right": "Just right",
-  tough: "Tough",
+  tough: "Too hard",
 } as const;
 
 function getWorkoutName(workoutId: string) {
