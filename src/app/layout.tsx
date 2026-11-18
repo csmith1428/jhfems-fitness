@@ -42,9 +42,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      // Some phone browsers add attributes to <html> and <body> before the
+      // app loads. This tells React not to warn about that outer shell only.
+      suppressHydrationWarning
       className={`${geistSans.variable} ${barlow.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
         {children}
         <BottomNav />
       </body>
