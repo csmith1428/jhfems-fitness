@@ -280,25 +280,6 @@ export default function HomePage() {
             )}
           </div>
         </section>
-
-        {/* PROGRAM SHORTCUT */}
-        <Link
-          href="/program"
-          className="mt-8 flex items-center justify-between gap-4 rounded-2xl bg-white p-5 shadow-[0_2px_10px_rgba(20,24,27,0.07)] transition-colors hover:bg-[#F1F3EF]"
-        >
-          <div>
-            <p className="font-display text-xl font-extrabold uppercase">
-              12-week training cycle
-            </p>
-            <p className="mt-1 text-sm text-[var(--brand-muted)]">
-              See the whole plan and review past weeks.
-            </p>
-          </div>
-
-          <span aria-hidden="true" className="text-2xl">
-            ›
-          </span>
-        </Link>
       </div>
     </main>
   );
