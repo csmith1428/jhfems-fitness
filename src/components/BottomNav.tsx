@@ -74,6 +74,9 @@ function NavIcon({ name }: { name: IconName }) {
 export default function BottomNav() {
   const pathname = usePathname();
 
+  // The setup screen is a one-time page, so it has no menu.
+  if (pathname === "/setup") return null;
+
   return (
     <nav
       aria-label="Mobile navigation"

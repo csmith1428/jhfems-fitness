@@ -58,8 +58,8 @@ export default function SetupPage() {
 
   return (
     <main className="min-h-screen bg-[var(--brand-canvas)] text-[var(--brand-ink)]">
-      <div className="mx-auto flex min-h-screen max-w-md flex-col px-5 pb-7 pt-7">
-        <div className="flex-1 space-y-5">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col px-5 pb-8 pt-7">
+        <div className="flex-1">
           <div>
             <p className="font-label text-[12px] uppercase tracking-widest text-[#C2272D]">
               Welcome
@@ -69,7 +69,7 @@ export default function SetupPage() {
             </h1>
           </div>
 
-          <ul className="space-y-3">
+          <ul className="mt-6 space-y-4">
             {points.map((point) => (
               <li key={point.title} className="flex items-start gap-3">
                 <svg
@@ -94,7 +94,7 @@ export default function SetupPage() {
             ))}
           </ul>
 
-          <fieldset className="space-y-2">
+          <fieldset className="mt-9 space-y-2.5">
             <legend className="mb-2 font-display text-2xl font-extrabold uppercase">
               Pick your starting level
             </legend>
@@ -105,7 +105,7 @@ export default function SetupPage() {
               return (
                 <label
                   key={option}
-                  className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-white px-3.5 py-3 ${
+                  className={`flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-white px-4 py-3.5 ${
                     selected
                       ? "border-[var(--brand-ink)]"
                       : "border-[#E3E6E2]"
@@ -117,7 +117,7 @@ export default function SetupPage() {
                     value={option}
                     checked={selected}
                     onChange={() => setPicked(option)}
-                    className="mt-0.5 h-5 w-5 shrink-0 accent-[#D83036]"
+                    className="ml-0.5 mt-0.5 h-5 w-5 shrink-0 accent-[#D83036]"
                   />
 
                   <span>
@@ -148,7 +148,7 @@ export default function SetupPage() {
         <button
           type="button"
           onClick={error ? () => router.push("/") : start}
-          className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-red)] text-[17px] font-bold text-white transition-colors hover:bg-[var(--brand-red-hover)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--brand-red)]"
+          className="mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-red)] text-[17px] font-bold text-white transition-colors hover:bg-[var(--brand-red-hover)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--brand-red)]"
         >
           {error ? "Continue anyway" : "Start Week 1"}
           <span aria-hidden="true">→</span>
