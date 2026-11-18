@@ -40,7 +40,14 @@ type Block = {
 
 type Segment =
   | { type: "block"; block: Block }
-  | { type: "timed"; group: string; title: string; detail: string; seconds: number }
+  | {
+      type: "timed";
+      group: string;
+      title: string;
+      detail: string;
+      seconds: number;
+      tone?: "go" | "rest";
+    }
   | { type: "loose"; lines: string[] };
 
 const EMOM =
@@ -48,6 +55,7 @@ const EMOM =
 const ROUNDS =
   /^(?:(Block \d+|Finisher)\s*(?:—|,)\s*)?(\d+) rounds?(?:\s+at\s+(.+?))?\s*:\s*$/i;
 const TECHNIQUE = /^Technique practice \((\d+) min\):\s*(.+)$/i;
+const BLOCK_REST = /^Rest (\d+) (min|sec) between blocks\.?$/i;
 const TIMED_LINE = /^(\d+(?:\.\d+)?)\s*(min|sec)\s+(.+)$/i;
 const REST_BETWEEN =
   /^Rest (\d+)(?::(\d{2}))?\s*(sec|min)\b.*between rounds/i;
@@ -79,6 +87,7 @@ function parseSegments(lines: string[]): Segment[] {
     const emom = line.match(EMOM);
     const rounds = line.match(ROUNDS);
     const technique = line.match(TECHNIQUE);
+    const blockRest = line.match(BLOCK_REST);
     const isDigitLed = /^\d/.test(line);
     const finishLine = /\bto finish\b/i.test(line)
       ? line.match(TIMED_LINE)
@@ -94,6 +103,18 @@ function parseSegments(lines: string[]): Segment[] {
         title: "Easy finish",
         detail: capital(line),
         seconds: toSeconds(Number(finishLine[1]), finishLine[2]),
+      });
+    } else if (blockRest) {
+      // e.g. "Rest 3 min between blocks"
+      closeBlock();
+      closeLoose();
+      segments.push({
+        type: "timed",
+        group: "Rest",
+        title: "Rest",
+        detail: "Shake it out and get a drink. Next block starts when the timer ends.",
+        seconds: toSeconds(Number(blockRest[1]), blockRest[2]),
+        tone: "rest",
       });
     } else if (emom) {
       closeBlock();
@@ -277,7 +298,7 @@ export function buildPhases(
             title: segment.title,
             detail: segment.detail,
             duration: segment.seconds,
-            tone: "go",
+            tone: segment.tone ?? "go",
           });
         } else {
           phases.push({
