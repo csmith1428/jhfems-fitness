@@ -58,7 +58,7 @@ export default function SetupPage() {
 
   return (
     <main className="min-h-dvh bg-[var(--brand-canvas)] text-[var(--brand-ink)]">
-      <div className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-7">
+      <div className="mx-auto flex min-h-dvh max-w-md flex-col px-5 pt-7">
         <div className="flex-1">
           <div>
             <p className="font-label text-[12px] uppercase tracking-widest text-[#C2272D]">
@@ -145,14 +145,17 @@ export default function SetupPage() {
           </p>
         )}
 
-        <button
-          type="button"
-          onClick={error ? () => router.push("/") : start}
-          className="mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-red)] text-[17px] font-bold text-white transition-colors hover:bg-[var(--brand-red-hover)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--brand-red)]"
-        >
-          {error ? "Continue anyway" : "Start Week 1"}
-          <span aria-hidden="true">→</span>
-        </button>
+        {/* Stays at the bottom of the screen so it's never hidden */}
+        <div className="sticky bottom-0 -mx-5 mt-6 border-t border-[#E3E6E2] bg-[var(--brand-canvas)] px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3">
+          <button
+            type="button"
+            onClick={error ? () => router.push("/") : start}
+            className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--brand-red)] text-[17px] font-bold text-white transition-colors hover:bg-[var(--brand-red-hover)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--brand-red)]"
+          >
+            {error ? "Continue anyway" : "Start Week 1"}
+            <span aria-hidden="true">→</span>
+          </button>
+        </div>
       </div>
     </main>
   );
