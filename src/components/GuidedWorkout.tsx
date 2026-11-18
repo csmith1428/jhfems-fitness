@@ -6,6 +6,11 @@ import DoneCard from "@/components/DoneCard";
 import { playCue, unlockAudio } from "@/lib/cues";
 import { buildPhases, formatClock, type Phase } from "@/lib/guidedPlan";
 import { useWorkoutLog } from "@/lib/workoutHistory";
+import { writeStoredString } from "@/lib/useStoredString";
+import {
+  progressKey as makeProgressKey,
+  readProgress,
+} from "@/lib/guidedProgress";
 import type { Workout } from "@/data/workouts";
 
 /*
@@ -133,11 +138,23 @@ export default function GuidedWorkout({
     [workout, mainLines]
   );
 
+  const progressKey = makeProgressKey(workout.id, levelLabel);
+
+  // If they paused or left earlier, pick up at the screen they saved.
   const [state, dispatch] = useReducer(
     (current: State, action: Action) => reduce(phases, current, action),
-    { index: 0, endAt: null, pausedLeft: null, now: 0 }
+    undefined,
+    (): State => {
+      const saved = readProgress(progressKey);
+      const index =
+        saved && saved.index < phases.length ? saved.index : 0;
+
+      return { index, endAt: null, pausedLeft: null, now: 0 };
+    }
   );
   const [finished, setFinished] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [clockWasRunning, setClockWasRunning] = useState(false);
   // Checklist items ticked this session (just for you, not saved).
   const [ticked, setTicked] = useState<string[]>([]);
 
@@ -155,6 +172,33 @@ export default function GuidedWorkout({
 
   const notStarted =
     timed && !running && remainingMs === (phase.duration ?? 0) * 1000;
+
+  // Save where they are after every step, so a call-out never loses it.
+  const whereTitle =
+    phase.title === "Rest" && phase.sets === undefined
+      ? phase.detail ?? phase.title
+      : phase.title;
+  const whereSub = phase.sets
+    ? `Set ${phase.sets.n} of ${phase.sets.of}`
+    : (phase.counter ?? phase.group);
+
+  useEffect(() => {
+    if (finished || state.index === 0) return;
+
+    try {
+      writeStoredString(
+        progressKey,
+        JSON.stringify({
+          index: state.index,
+          savedAt: Date.now(),
+          title: whereTitle,
+          sub: whereSub,
+        })
+      );
+    } catch {
+      // Storage is blocked. The workout still works, it just won't be saved.
+    }
+  }, [finished, state.index, progressKey, whereTitle, whereSub]);
 
   // Keep the clock ticking while it is running.
   useEffect(() => {
@@ -242,11 +286,65 @@ export default function GuidedWorkout({
     );
   }
 
+  function clearProgress() {
+    try {
+      writeStoredString(progressKey, null);
+    } catch {
+      // Nothing to clear if storage is blocked.
+    }
+  }
+
   function finish() {
     if (log.complete("")) {
+      clearProgress();
+      setPaused(false);
       setFinished(true);
     }
   }
+
+  function pauseWorkout() {
+    setClockWasRunning(running);
+    dispatch({ type: "pause", now: Date.now() });
+    setPaused(true);
+  }
+
+  function resumeWorkout() {
+    unlockAudio();
+    setPaused(false);
+
+    if (clockWasRunning) {
+      dispatch({ type: "resume", now: Date.now() });
+    }
+  }
+
+  // Skip jumps past a whole move (strength) or a whole block (circuits).
+  const skipTo = (() => {
+    const from = state.index + 1;
+
+    if (phase.move !== undefined) {
+      const at = phases.findIndex(
+        (item, i) => i >= from && item.move !== phase.move
+      );
+
+      return { index: at, label: "Skip move" };
+    }
+
+    if (/^Block \d/.test(phase.group)) {
+      const at = phases.findIndex(
+        (item, i) => i >= from && item.group !== phase.group
+      );
+      const name = at === -1 ? "" : phases[at].group;
+
+      return {
+        index: at,
+        label: /^(Block \d|Finisher)/.test(name)
+          ? `Skip to ${name}`
+          : "Skip",
+      };
+    }
+
+    return { index: isLast ? -1 : from, label: "Skip" };
+  })();
 
   // Progress: one bar per group of phases.
   const groups = phases.reduce<
@@ -267,13 +365,15 @@ export default function GuidedWorkout({
     ? "Finish workout"
     : timed
       ? running
-        ? "Pause"
+        ? "Pause clock"
         : notStarted
           ? "Start timer"
-          : "Resume"
-      : phase.counter?.startsWith("Round")
-        ? "Round done"
-        : `Next · ${next.title}`;
+          : "Resume clock"
+      : phase.sets && phase.sets.n < phase.sets.of
+        ? "Set done · start rest"
+        : phase.counter?.startsWith("Round")
+          ? "Round done"
+          : `Next · ${next.title}`;
 
   function onPrimary() {
     if (isLast) finish();
@@ -320,15 +420,92 @@ export default function GuidedWorkout({
                 href="/"
                 className="flex h-14 items-center justify-center rounded-2xl bg-[#F4F5F3] text-base font-bold text-[var(--brand-night)]"
               >
-                Back to my week
+                Back to Today
               </Link>
+
+              <Link
+                href="/program"
+                className="flex h-12 items-center justify-center rounded-xl border border-[#3A4248] text-sm font-semibold"
+              >
+                See my 12 weeks
+              </Link>
+            </div>
+          </>
+        ) : paused ? (
+          <>
+            <div className="flex-1 pt-16">
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--brand-night-card)]">
+                <svg
+                  width="30"
+                  height="30"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.6"
+                  strokeLinecap="round"
+                  aria-hidden="true"
+                >
+                  <path d="M9 6v12M15 6v12" />
+                </svg>
+              </div>
+
+              <h2 className="mt-6 font-display text-6xl font-extrabold uppercase leading-[0.92]">
+                Paused.
+                <br />
+                Go take the call.
+              </h2>
+
+              <p className="mt-4 text-base leading-snug text-[#C9CFD3]">
+                Everything&apos;s saved. Pick up right where you stopped,
+                today or any day this week.
+              </p>
+
+              <div className="mt-6 rounded-2xl bg-[var(--brand-night-card)] p-4">
+                <p className="font-label text-[11px] uppercase tracking-widest text-[#AEB6BC]">
+                  Saved at
+                </p>
+                <p className="mt-1 text-lg font-semibold">
+                  {whereTitle}
+                </p>
+                <p className="text-sm text-[#C9CFD3]">
+                  {whereSub} · {workout.title}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-col gap-3">
+              {log.error && (
+                <p
+                  role="alert"
+                  className="rounded-xl border border-[var(--brand-red)] p-3 text-sm"
+                >
+                  {log.error}
+                </p>
+              )}
+
+              <button
+                type="button"
+                autoFocus
+                onClick={resumeWorkout}
+                className="flex h-14 items-center justify-center rounded-2xl bg-[#F4F5F3] text-base font-bold text-[var(--brand-night)]"
+              >
+                Resume
+              </button>
 
               <button
                 type="button"
                 onClick={onClose}
                 className="h-12 rounded-xl border border-[#3A4248] text-sm font-semibold"
               >
-                Close
+                Finish later
+              </button>
+
+              <button
+                type="button"
+                onClick={finish}
+                className="min-h-12 rounded-xl px-3 text-sm font-semibold text-[#C9CFD3] underline underline-offset-4"
+              >
+                Call it done for today (still counts)
               </button>
             </div>
           </>
@@ -338,29 +515,29 @@ export default function GuidedWorkout({
             <div className="flex items-center justify-between gap-3">
               <button
                 type="button"
-                aria-label="Leave guided workout"
-                onClick={onClose}
-                className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-night-card)]"
+                onClick={pauseWorkout}
+                className="flex h-11 items-center gap-2 rounded-xl bg-[var(--brand-night-card)] px-3.5 text-sm font-bold"
               >
                 <svg
-                  width="20"
-                  height="20"
+                  width="16"
+                  height="16"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="2.4"
+                  strokeWidth="3"
                   strokeLinecap="round"
                   aria-hidden="true"
                 >
-                  <path d="M6 6l12 12M18 6L6 18" />
+                  <path d="M9 6v12M15 6v12" />
                 </svg>
+                Pause
               </button>
 
               <p className="font-label text-[11px] uppercase tracking-widest text-[#AEB6BC]">
                 {workout.title} · {levelLabel}
               </p>
 
-              <div className="w-11" />
+              <div className="w-[74px]" />
             </div>
 
             {/* PROGRESS: one bar per group */}
@@ -574,11 +751,11 @@ export default function GuidedWorkout({
 
                 <button
                   type="button"
-                  disabled={isLast}
-                  onClick={forward}
-                  className="h-12 rounded-xl border border-[#3A4248] text-sm font-semibold disabled:opacity-40"
+                  disabled={skipTo.index === -1}
+                  onClick={() => go(skipTo.index, !timed || running)}
+                  className="h-12 rounded-xl border border-[#3A4248] px-2 text-sm font-semibold disabled:opacity-40"
                 >
-                  Skip
+                  {skipTo.label}
                 </button>
               </div>
             </div>

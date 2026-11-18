@@ -1,5 +1,6 @@
 import type { Workout } from "@/data/workouts";
 import { splitWorkoutLines } from "@/lib/workoutText";
+import { parseSets, restBetweenSets } from "@/lib/workoutInfo";
 
 /*
   Turns a workout (plain sentences) into a list of "phases" that the
@@ -25,6 +26,8 @@ export type Phase = {
   notes?: string[]; // coaching tips
   duration?: number; // seconds. Present means the clock runs by itself.
   tone?: Tone;
+  sets?: { n: number; of: number }; // strength: which set this screen is
+  move?: number; // strength: which move this screen belongs to
 };
 
 type Block = {
@@ -267,14 +270,48 @@ export function buildPhases(
   if (workout.format === "strength") {
     const { moves, notes } = splitWorkoutLines(mainLines);
 
+    const restSeconds = restBetweenSets(notes);
+
     moves.forEach((move, index) => {
-      phases.push({
-        group: "Main work",
-        title: move.name,
-        detail: move.detail,
-        counter: `Move ${index + 1} of ${moves.length}`,
-        notes,
-      });
+      const plan = parseSets(move.detail);
+      const counter = `Move ${index + 1} of ${moves.length}`;
+
+      if (!plan || plan.sets < 1) {
+        phases.push({
+          group: "Main work",
+          title: move.name,
+          detail: move.detail,
+          counter,
+          notes,
+          move: index,
+        });
+
+        return;
+      }
+
+      for (let n = 1; n <= plan.sets; n++) {
+        phases.push({
+          group: "Main work",
+          title: move.name,
+          detail: `Set ${n} of ${plan.sets} · ${plan.reps}`,
+          counter,
+          notes,
+          sets: { n, of: plan.sets },
+          move: index,
+        });
+
+        if (n < plan.sets) {
+          phases.push({
+            group: "Main work",
+            title: "Rest",
+            detail: `Next up: Set ${n + 1} of ${plan.sets}`,
+            counter,
+            duration: restSeconds,
+            tone: "rest",
+            move: index,
+          });
+        }
+      }
     });
   } else {
     const segments = parseSegments(mainLines);
